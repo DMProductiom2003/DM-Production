@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Science with Denuka - Complete Learning System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: linear-gradient(135deg, #0f3b2c 0%, #1a6b4a 100%); min-height: 100vh; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 24px; transition: all 0.3s ease; }
+        .glass-card:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.2); }
+        .option-card { transition: all 0.2s ease; cursor: pointer; }
+        .option-card.selected { background: linear-gradient(135deg, #2d6a4f 0%, #1b4d3e 100%); color: white; }
+        .timer-warning { animation: pulse 1s infinite; background-color: #dc2626 !important; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #2d6a4f; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .upload-zone { border: 2px dashed #cbd5e1; transition: all 0.2s; cursor: pointer; }
+        .upload-zone:hover { border-color: #2d6a4f; background: #f0fdf4; }
+        .question-card { background: #f9fafb; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border-left: 4px solid #2d6a4f; }
+        .question-card:hover { background: #f3f4f6; }
+        .grade-card { transition: all 0.3s; cursor: pointer; }
+        .grade-card.selected { border: 3px solid #2e7d64 !important; background: linear-gradient(135deg, #e6f4ea 0%, #d0ebd9 100%) !important; }
+        .package-card { transition: all 0.2s; cursor: pointer; position: relative; }
+        .package-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .paper-card { transition: all 0.2s; cursor: pointer; position: relative; }
+        .paper-card:hover:not(.locked) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .admin-tab { transition: all 0.2s ease; cursor: pointer; }
+        .admin-card { transition: all 0.2s ease; }
+        .admin-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .nav-link { transition: all 0.2s ease; cursor: pointer; }
+        .nav-link:hover { background: rgba(45, 106, 79, 0.1); transform: translateY(-2px); }
+        .stat-card { transition: all 0.3s ease; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .slip-preview { max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px; }
+        .account-row { transition: all 0.2s; }
+        .account-row:hover { background: #f0fdf4; }
+        .package-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: bold; margin: 2px; }
+        .package-badge.active { background: #10b981; color: white; }
+        .package-badge.inactive { background: #ef4444; color: white; }
+        .package-badge.pending { background: #f59e0b; color: white; }
+        .insight-bar { transition: width 0.5s ease; }
+        .insight-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .top-performer-card { transition: all 0.2s ease; }
+        .top-performer-card:hover { transform: translateX(5px); background: #f3f4f6; }
+        .session-warning { background: #fee2e2; border-left: 4px solid #dc2626; animation: shake 0.5s ease; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .quiz-image { max-width: 100%; max-height: 200px; object-fit: contain; margin: 10px 0; border-radius: 12px; }
+        .option-image { max-width: 60px; max-height: 60px; object-fit: cover; border-radius: 8px; margin-left: 8px; }
+        .free-badge { background: linear-gradient(135deg, #f59e0b, #ea580c); color: white; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar (Hidden for Free User) -->
+    <nav id="mainNav" class="hidden fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-md z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-emerald-600 to-green-700 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </div>
+                <span class="font-bold text-gray-800">Science with Denuka</span>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+                <button id="navHome" class="nav-link px-4 py-2 rounded-lg text-green-700 font-semibold text-sm">🏠 Home</button>
+                <button id="navPackages" class="nav-link px-4 py-2 rounded-lg text-gray-600 font-semibold text-sm">📦 Packages</button>
+                <button id="navProfile" class="nav-link px-4 py-2 rounded-lg text-gray-600 font-semibold text-sm">👤 Profile</button>
+                <button id="navProgress" class="nav-link px-4 py-2 rounded-lg text-gray-600 font-semibold text-sm">📊 Progress</button>
+                <button id="navLogout" class="nav-link px-4 py-2 rounded-lg text-red-600 font-semibold text-sm">🚪 Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Session Expired Alert Modal -->
+    <div id="sessionExpiredModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 text-center session-warning">
+            <div class="text-5xl mb-4">🔒</div>
+            <h3 class="text-xl font-bold text-red-700 mb-2">Session Expired!</h3>
+            <p class="text-gray-600 mb-4">You have been logged out because you logged in from another device or browser.</p>
+            <button id="sessionExpiredOkBtn" class="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700">OK - Reload</button>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 pt-20">
+        
+        <!-- ==================== LOGIN PAGE ==================== -->
+        <div id="loginPage" class="max-w-md mx-auto glass-card p-8 shadow-2xl">
+            <div class="text-center mb-6">
+                <div class="w-20 h-20 bg-gradient-to-br from-emerald-600 to-green-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-800">Science with Denuka</h2>
+                <p class="text-gray-500 mt-1">Complete Learning Management System</p>
+                <p class="text-xs text-gray-400 mt-2">Contact administrator to create an account</p>
+                <p class="text-xs text-blue-500 mt-1">🔒 One device per account at a time</p>
+            </div>
+            
+            <div id="loginForm">
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Choose Your Grade</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div id="loginGrade10" class="grade-card bg-white rounded-xl p-4 text-center border-2 border-gray-200 cursor-pointer"><div class="text-3xl font-bold text-green-700">10</div><p class="text-sm">Grade 10 Science</p></div>
+                        <div id="loginGrade11" class="grade-card bg-white rounded-xl p-4 text-center border-2 border-gray-200 cursor-pointer"><div class="text-3xl font-bold text-green-700">11</div><p class="text-sm">Grade 11 Science</p></div>
+                    </div>
+                </div>
+                <input type="text" id="loginUsername" placeholder="Username" class="w-full px-4 py-3 rounded-xl border-2 mb-3 focus:border-green-500 outline-none">
+                <input type="password" id="loginPassword" placeholder="Password" class="w-full px-4 py-3 rounded-xl border-2 mb-4 focus:border-green-500 outline-none">
+                <input type="hidden" id="selectedLoginGrade" value="">
+                <button id="loginSubmitBtn" disabled class="w-full bg-gray-400 text-white font-bold py-3 rounded-xl cursor-not-allowed">Select Grade First</button>
+                <div class="text-center mt-3 space-x-2">
+                    <button id="forgotUsernameBtn" class="text-sm text-blue-600 hover:underline">Forgot Username?</button>
+                    <span>|</span>
+                    <button id="forgotPasswordBtn" class="text-sm text-blue-600 hover:underline">Forgot Password?</button>
+                </div>
+                <div class="mt-4">
+                    <button id="freeAccessBtn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">🔓 Try Free Package (No Login Required)</button>
+                </div>
+            </div>
+            
+            <button id="adminPortalBtn" class="text-xs text-gray-400 mt-6 text-center w-full hover:text-green-700 transition">🔒 Admin Portal</button>
+        </div>
+
+        <!-- FORGOT MODALS (same as before) -->
+        <div id="forgotUsernameModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div class="bg-white rounded-2xl max-w-md w-full p-6"><div class="flex justify-between mb-4"><h3 class="text-2xl font-bold text-green-800">🔑 Forgot Username?</h3><button id="closeForgotUsernameModal" class="text-gray-500 text-2xl">&times;</button></div><div class="bg-blue-50 p-4 rounded-lg mb-4"><p class="text-sm text-blue-800">Select your grade to retrieve your username.</p></div><div class="grid grid-cols-2 gap-3 mb-4"><button id="forgotGrade10Btn" class="grade-card bg-white rounded-xl p-3 text-center border-2"><div class="text-2xl font-bold text-green-700">10</div></button><button id="forgotGrade11Btn" class="grade-card bg-white rounded-xl p-3 text-center border-2"><div class="text-2xl font-bold text-green-700">11</div></button></div><button id="searchUsernameBtn" class="w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700">Search</button><div id="usernameResult" class="hidden mt-4 p-4 bg-green-50 rounded-lg"><div id="usernameList"></div></div></div></div>
+        <div id="resetRequestModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div class="bg-white rounded-2xl max-w-md w-full p-6"><div class="flex justify-between mb-4"><h3 class="text-2xl font-bold text-green-800">🔐 Request Password Reset</h3><button id="closeResetModal" class="text-gray-500 text-2xl">&times;</button></div><form id="resetRequestForm"><input type="text" id="resetUsername" placeholder="Username" required class="w-full px-4 py-3 rounded-xl border-2 mb-4"><button type="submit" class="w-full bg-orange-600 text-white py-3 rounded-xl hover:bg-orange-700">Submit Request</button></form></div></div>
+
+        <!-- PROFILE PAGE -->
+        <div id="profilePage" class="hidden max-w-2xl mx-auto glass-card p-8"><div class="text-center mb-6"><div class="w-24 h-24 bg-gradient-to-br from-green-600 to-emerald-600 rounded-full mx-auto flex items-center justify-center mb-4"><span class="text-4xl text-white">👤</span></div><h2 class="text-2xl font-bold">My Profile</h2></div><div class="bg-gray-50 rounded-xl p-6 space-y-4"><div class="flex justify-between pb-3 border-b"><span class="font-semibold">Username:</span><span id="profileUsername" class="text-gray-800"></span></div><div class="flex justify-between pb-3 border-b"><span class="font-semibold">Grade:</span><span id="profileGrade" class="text-gray-800"></span></div><div class="flex justify-between pb-3 border-b"><span class="font-semibold">Account Created:</span><span id="profileCreated" class="text-gray-800"></span></div><div class="flex justify-between pb-3 border-b"><span class="font-semibold">Last Login:</span><span id="profileLastLogin" class="text-gray-800"></span></div><div class="flex justify-between pb-3 border-b"><span class="font-semibold">Total Logins:</span><span id="profileLoginCount" class="text-green-600 font-bold text-xl"></span></div><div class="flex justify-between pb-3 border-b"><span class="font-semibold">Total Papers Completed:</span><span id="profileTotalCompleted" class="text-green-600 font-bold text-xl"></span></div></div><button id="profileBackBtn" class="w-full mt-6 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700">← Back to Packages</button></div>
+
+        <!-- PROGRESS PAGE -->
+        <div id="progressPage" class="hidden max-w-4xl mx-auto glass-card p-8"><h2 class="text-2xl font-bold text-center mb-6">📊 My Learning Progress</h2><div id="progressSummary" class="space-y-4"></div><div class="mt-6 flex gap-3"><button id="progressBackBtn" class="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700">← Back to Packages</button><button id="refreshProgressBtn" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">🔄 Refresh Progress</button></div></div>
+
+        <!-- PACKAGES PAGE -->
+        <div id="packagesPage" class="hidden glass-card p-8"><div class="text-center mb-6"><h2 class="text-2xl font-bold">📦 Available Learning Packages</h2><p class="text-gray-600">Grade <span id="gradeLabel"></span> | Welcome, <span id="userName"></span></p><div class="mt-2 flex justify-center gap-4 text-xs"><span class="flex items-center gap-1"><span class="w-3 h-3 bg-green-500 rounded-full"></span> Purchased</span><span class="flex items-center gap-1"><span class="w-3 h-3 bg-yellow-500 rounded-full"></span> Pending</span><span class="flex items-center gap-1"><span class="w-3 h-3 bg-red-500 rounded-full"></span> Locked</span><span class="flex items-center gap-1"><span class="w-3 h-3 bg-orange-500 rounded-full"></span> Free Access</span></div></div><div id="packagesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div></div>
+
+        <!-- PAPERS PAGE -->
+        <div id="papersPage" class="hidden glass-card p-8"><div class="flex justify-between items-center mb-6 flex-wrap gap-3"><button id="papersBackBtn" class="bg-gray-200 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300">← Back to Packages</button><div><h2 class="text-2xl font-bold text-center">Package <span id="currentPkgName"></span> Papers</h2><p class="text-xs text-center text-gray-500 mt-1">Each paper can be attempted only 3 times</p></div><div></div></div><div class="bg-blue-50 rounded-xl p-4 mb-6"><div class="flex justify-between items-center"><div><p class="font-semibold">📊 Progress</p><p><span id="attemptedPapersCount">0</span> of <span id="totalPapersCount">0</span> papers attempted</p></div><div class="w-48 bg-gray-200 rounded-full h-3"><div id="progressFill" class="bg-green-600 h-3 rounded-full" style="width:0%"></div></div></div><p class="text-xs text-red-600 mt-2 font-bold">⚠️ Each paper can be attempted ONLY 3 times! After 3 attempts, the paper is locked.</p></div><div id="papersGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div></div>
+
+        <!-- QUIZ PAGE (Updated to show images) -->
+        <div id="quizPage" class="hidden glass-card p-6"><div class="flex justify-between items-center mb-4 flex-wrap gap-2"><button id="quizExitBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold">✕ Exit</button><div class="bg-gray-200 rounded-full px-4 py-2 font-mono font-bold text-lg"><span>⏰</span> <span id="timerDisplay">60:00</span></div><div><span class="font-semibold">Question <span id="qCurrent">1</span> / <span id="qTotal">0</span></span></div><button id="downloadAnswersBtn" class="bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold">📥 Download Answers</button></div><div class="w-full bg-gray-200 rounded-full h-2 mb-6"><div id="quizProgress" class="bg-green-600 h-2 rounded-full" style="width:0%"></div></div>
+            <div id="questionImageContainer" class="text-center mb-2"></div>
+            <h2 id="questionText" class="text-xl font-bold mb-4"></h2>
+            <div id="optionsContainer" class="space-y-3"></div>
+            <div class="flex justify-between mt-8"><button id="prevQuestionBtn" class="px-6 py-2 border-2 rounded-lg disabled:opacity-50">← Previous</button><button id="nextQuestionBtn" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Next →</button></div>
+        </div>
+
+        <!-- RESULTS PAGE -->
+        <div id="resultsPage" class="hidden max-w-2xl mx-auto glass-card p-8 text-center"><div class="w-20 h-20 bg-green-500 rounded-full mx-auto flex items-center justify-center text-white text-3xl mb-4">✓</div><h2 class="text-2xl font-bold mb-2">Paper Completed!</h2><div class="bg-green-50 rounded-xl p-4 my-4"><p class="text-lg">Your Score: <span id="finalScore" class="font-bold text-3xl text-green-700"></span></p><p class="text-sm mt-2">Time Taken: <span id="timeTakenDisplay"></span></p><p id="attemptsLeftDisplay" class="text-sm mt-2 text-orange-600 font-semibold"></p></div><div class="flex gap-3"><button id="downloadReportBtn" class="flex-1 bg-red-600 text-white px-6 py-2 rounded-lg font-semibold">📄 PDF Report</button><button id="resultsBackBtn" class="flex-1 bg-green-600 text-white px-6 py-2 rounded-lg font-semibold">← Back to Papers</button></div></div>
+
+        <!-- PAYMENT MODAL -->
+        <div id="paymentModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div class="bg-white rounded-2xl max-w-lg w-full p-6"><div class="flex justify-between mb-4"><h3 class="text-2xl font-bold text-green-800">💰 Purchase Package <span id="payPkgNum"></span></h3><button id="closePaymentModal" class="text-gray-500 text-2xl">&times;</button></div><div class="bg-blue-50 p-4 rounded-lg mb-4"><p class="font-semibold">Package Fee: LKR <span id="payFeeAmount"></span></p><p class="text-sm">Each paper can be attempted 3 times. After 3 attempts, the paper is locked.</p></div><div class="bg-yellow-50 p-4 rounded-lg mb-4"><p class="font-semibold">Bank Details:</p><p class="text-sm">Bank: Sample Bank<br>Account: Science with Denuka<br>Number: 123-456-7890</p></div><input type="file" id="bankSlipInput" accept="image/*,.pdf" class="w-full border-2 rounded-lg p-2 mb-3"><input type="text" id="transactionRefInput" placeholder="Transaction Reference" class="w-full border-2 rounded-lg p-2 mb-3"><input type="date" id="paymentDateInput" class="w-full border-2 rounded-lg p-2 mb-3"><input type="number" id="amountPaidInput" placeholder="Amount (LKR)" class="w-full border-2 rounded-lg p-2 mb-4"><button id="confirmPaymentBtn" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700">Submit Payment</button></div></div>
+
+        <!-- WAITING MODAL -->
+        <div id="waitingModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div class="bg-white rounded-2xl max-w-md w-full p-6 text-center"><div class="loading-spinner"></div><h3 class="text-xl font-bold mt-3">Payment Submitted!</h3><p class="text-gray-600 mt-2">Package <span id="waitingPkgNum"></span> pending verification.</p><button id="closeWaitingModal" class="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg">OK</button></div></div>
+
+        <!-- RESULT MODAL -->
+        <div id="resultModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center"><div id="resultIcon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"></div><h3 id="resultTitle" class="text-xl font-bold mb-2"></h3><p id="resultMessage" class="text-gray-600"></p><button id="closeResultBtn" class="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg">OK</button></div></div>
+        <div id="slipViewModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4"><div class="bg-white rounded-2xl max-w-2xl w-full p-4"><div class="flex justify-between mb-4"><h3 class="text-2xl font-bold text-green-800">Bank Slip</h3><button id="closeSlipModal" class="text-gray-500 text-2xl">&times;</button></div><img id="slipImage" src="" alt="Bank Slip" class="slip-preview mx-auto"></div></div>
+
+        <!-- EDIT QUESTION MODAL (Updated with Image fields) -->
+        <div id="editQuestionModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6"><div class="flex justify-between mb-4"><h3 class="text-2xl font-bold text-green-800">✏️ Edit Question</h3><button id="closeEditModal" class="text-gray-500 text-2xl">&times;</button></div><div class="space-y-4"><div><label class="font-semibold">Question Image URL (Optional):</label><input type="text" id="editQImage" placeholder="https://example.com/image.jpg" class="w-full border-2 rounded-lg p-2"><p class="text-xs text-gray-500">Enter direct image URL to display above question</p></div><div><label class="font-semibold">Question Text:</label><textarea id="editQText" rows="3" class="w-full border-2 rounded-lg p-2"></textarea></div><div><label>Option A:</label><input type="text" id="editOptA" class="w-full border-2 rounded-lg p-2"><div class="flex gap-2 mt-1"><input type="text" id="editOptAImg" placeholder="Image URL for Option A" class="w-full border rounded-lg p-1 text-sm"><span class="text-xs text-gray-500">(Optional)</span></div></div><div><label>Option B:</label><input type="text" id="editOptB" class="w-full border-2 rounded-lg p-2"><div class="flex gap-2 mt-1"><input type="text" id="editOptBImg" placeholder="Image URL for Option B" class="w-full border rounded-lg p-1 text-sm"><span class="text-xs text-gray-500">(Optional)</span></div></div><div><label>Option C:</label><input type="text" id="editOptC" class="w-full border-2 rounded-lg p-2"><div class="flex gap-2 mt-1"><input type="text" id="editOptCImg" placeholder="Image URL for Option C" class="w-full border rounded-lg p-1 text-sm"><span class="text-xs text-gray-500">(Optional)</span></div></div><div><label>Option D:</label><input type="text" id="editOptD" class="w-full border-2 rounded-lg p-2"><div class="flex gap-2 mt-1"><input type="text" id="editOptDImg" placeholder="Image URL for Option D" class="w-full border rounded-lg p-1 text-sm"><span class="text-xs text-gray-500">(Optional)</span></div></div><div><label>Correct Answer:</label><select id="editCorrectAns" class="w-full border-2 rounded-lg p-2"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></div></div><div class="flex gap-3 mt-6"><button id="saveEditBtn" class="flex-1 bg-green-600 text-white py-2 rounded-lg font-semibold">💾 Save</button><button id="cancelEditBtn" class="flex-1 bg-gray-300 py-2 rounded-lg font-semibold">Cancel</button></div></div></div>
+
+        <!-- ADMIN MODAL -->
+        <div id="adminModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="sticky top-0 bg-white border-b px-6 py-4"><div class="flex justify-between"><div><h3 class="text-2xl font-bold text-green-800">Admin Dashboard</h3><p class="text-sm text-gray-500">Complete Management System</p></div><button id="closeAdminModalBtn" class="text-gray-400 text-2xl">&times;</button></div><input type="password" id="adminPasswordInput" placeholder="Enter Admin Password" class="w-full border-2 rounded-lg p-2 mt-3"><button id="adminLoginBtn" class="mt-2 w-full bg-green-600 text-white py-2 rounded-lg">Login</button></div>
+                <div id="adminPanelContent" class="hidden">
+                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 border-b"><h4 class="font-bold mb-4">📊 System Overview</h4><div class="grid grid-cols-2 md:grid-cols-8 gap-4">
+                        <div class="stat-card bg-white rounded-xl p-4 text-center"><div class="text-2xl font-bold text-green-600" id="statStudents">0</div><div class="text-xs">Total Students</div></div>
+                        <div class="stat-card bg-white rounded-xl p-4 text-center"><div class="text-2xl font-bold text-blue-600" id="statActivePkgs">0</div><div class="text-xs">Active Packages</div></div>
+                        <div class="stat-card bg-white rounded-xl p-4 text-center"><div class="text-2xl font-bold text-purple-600" id="statCompletedPapers">0</div><div class="text-xs">Completed Papers</div></div>
+                        <div class="stat-card bg-white rounded-xl p-4 text-center"><div class="text-2xl font-bold text-yellow-600" id="statPendingPay">0</div><div class="text-xs">Pending Payments</div></div>
+                        <div class="stat-card bg-white rounded-xl p-4 text-center"><div class="text-2xl font-bold text-orange-600" id="statTotalLogins">0</div><div class="text-xs">Total Logins</div></div>
+                        <div class="stat-card bg-white rounded-xl p-4 text-center"><div class="text-2xl font-bold text-pink-600" id="statResetReqs">0</div><div class="text-xs">Reset Requests</div></div>
+                        <div class="stat-card bg-white rounded-xl p-4 text-center"><div class="text-2xl font-bold text-indigo-600" id="statTotalPapers">0</div><div class="text-xs">Total Papers</div></div>
+                    </div></div>
+                    <div class="border-b px-6 pt-4"><div class="flex flex-wrap gap-1"><button id="adminTabDashboard" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-green-100 text-green-800">📊 Dashboard</button><button id="adminTabActivity" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">⏰ Activity</button><button id="adminTabStudents" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">👥 All Students</button><button id="adminTabCreateAccount" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">➕ Create Account</button><button id="adminTabAssignPackage" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">📦 Assign Package</button><button id="adminTabCustomPackages" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">✨ Custom Packages</button><button id="adminTabFreePackage" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">🔓 Manage Free Package</button><button id="adminTabInsights" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">📈 Paper Insights</button><button id="adminTabSessions" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">🔐 Active Sessions</button><button id="adminTabAccountRecords" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">📋 Account Records</button><button id="adminTabReset" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">🔐 Reset Requests</button><button id="adminTabPayments" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">💰 Pending Payments</button><button id="adminTabCompleted" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">📊 Completed Papers</button><button id="adminTabManagePapers" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">📝 Manage Papers</button><button id="adminTabResetPapers" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">🔄 Reset Papers</button><button id="adminTabSettings" class="admin-tab px-5 py-2.5 rounded-t-lg font-semibold text-sm bg-gray-100 text-gray-600">⚙️ Settings</button></div></div>
+                    <div class="p-6">
+                        <div id="adminDashboardPanel" class="space-y-4"><div class="grid md:grid-cols-2 gap-6"><div class="bg-white rounded-xl p-5 border"><h4 class="font-bold text-lg mb-3">📈 Recent Activity</h4><div id="recentActivityList" class="space-y-3 max-h-96 overflow-y-auto"></div></div><div class="bg-white rounded-xl p-5 border"><h4 class="font-bold text-lg mb-3">🏆 Top Students</h4><div id="topStudentsList" class="space-y-2 max-h-96 overflow-y-auto"></div></div></div></div>
+                        <div id="adminActivityPanel" class="hidden space-y-3 max-h-96 overflow-y-auto"></div>
+                        <div id="adminStudentsPanel" class="hidden space-y-3"></div>
+                        <div id="adminCreateAccountPanel" class="hidden"><div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 mb-6 border-2 border-green-200"><h3 class="text-2xl font-bold text-green-800 mb-4 flex items-center gap-2">➕ Create New Student Account</h3><p class="text-gray-600 mb-6">Create student accounts manually. Students will login with these credentials.</p><div class="grid md:grid-cols-2 gap-6"><div><label class="block text-sm font-semibold text-gray-700 mb-2">Username *</label><input type="text" id="newUsername" placeholder="Enter username" class="w-full px-4 py-3 rounded-xl border-2 focus:border-green-500 outline-none"><p class="text-xs text-gray-500 mt-1">Must be unique. Min 3 characters.</p></div><div><label class="block text-sm font-semibold text-gray-700 mb-2">Password *</label><input type="text" id="newPassword" placeholder="Enter password" class="w-full px-4 py-3 rounded-xl border-2 focus:border-green-500 outline-none"><p class="text-xs text-gray-500 mt-1">Min 4 characters.</p></div><div><label class="block text-sm font-semibold text-gray-700 mb-2">Select Grade *</label><div class="flex gap-4"><label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="newGrade" value="10" class="w-4 h-4 text-green-600"> Grade 10</label><label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="newGrade" value="11" class="w-4 h-4 text-green-600"> Grade 11</label></div></div><div class="flex items-end"><button id="createAccountBtn" class="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition">✅ Create Account</button></div></div><div id="createAccountResult" class="mt-4 hidden p-3 rounded-lg"></div></div></div>
+                        <div id="adminAssignPackagePanel" class="hidden"><div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-6 border-2 border-blue-200"><h3 class="text-2xl font-bold text-blue-800 mb-4 flex items-center gap-2">📦 Assign Package to Student</h3><p class="text-gray-600 mb-6">Manually assign any package to a student. This gives them immediate access without payment.</p><div class="grid md:grid-cols-2 gap-6"><div><label class="block text-sm font-semibold text-gray-700 mb-2">Select Student *</label><select id="assignStudentSelect" class="w-full px-4 py-3 rounded-xl border-2 focus:border-blue-500 outline-none"><option value="">-- Select Student --</option></select></div><div><label class="block text-sm font-semibold text-gray-700 mb-2">Select Package *</label><select id="assignPackageSelect" class="w-full px-4 py-3 rounded-xl border-2 focus:border-blue-500 outline-none"><option value="1">Package 1 (8 papers)</option><option value="2">Package 2 (20 papers)</option><option value="3">Package 3 (50 papers)</option><option value="4">Package 4 (50 papers)</option><option value="5">Package 5 (20 papers)</option><option id="customPackageOptions" value=""></option></select></div></div><div class="mt-6"><button id="assignPackageBtn" class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">📦 Assign Package to Student</button></div><div id="assignResult" class="mt-4 hidden p-3 rounded-lg"></div></div><div class="bg-indigo-50 rounded-xl p-4"><h4 class="font-bold text-indigo-800 mb-2">📋 Student Package Assignments</h4><div id="studentAssignmentsList" class="space-y-2 max-h-96 overflow-y-auto"></div></div></div>
+                        
+                        <!-- CUSTOM PACKAGES PANEL -->
+                        <div id="adminCustomPackagesPanel" class="hidden">
+                            <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mb-6 border-2 border-purple-200">
+                                <h3 class="text-2xl font-bold text-purple-800 mb-4 flex items-center gap-2">✨ Create Custom Package</h3>
+                                <p class="text-gray-600 mb-6">Create new packages that can be assigned to specific students. These won't appear for other students by default.</p>
+                                <div class="grid md:grid-cols-4 gap-4 mb-6">
+                                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Package Name *</label><input type="text" id="customPkgName" placeholder="e.g., Biology Advanced" class="w-full px-3 py-2 rounded-lg border-2"></div>
+                                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Number of Papers *</label><input type="number" id="customPkgPapers" placeholder="e.g., 10" class="w-full px-3 py-2 rounded-lg border-2"></div>
+                                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Fee (LKR) *</label><input type="number" id="customPkgFee" placeholder="e.g., 2000" class="w-full px-3 py-2 rounded-lg border-2"></div>
+                                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Grade *</label><select id="customPkgGrade" class="w-full px-3 py-2 rounded-lg border-2"><option value="10">Grade 10</option><option value="11">Grade 11</option></select></div>
+                                </div>
+                                <button id="createCustomPackageBtn" class="bg-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-purple-700">✨ Create Package</button>
+                            </div>
+                            <div class="bg-white rounded-xl p-5 border mb-6"><h4 class="font-bold text-lg mb-3">📦 Existing Custom Packages</h4><div id="customPackagesList" class="space-y-3 max-h-96 overflow-y-auto"></div></div>
+                            <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-5 border"><h4 class="font-bold text-blue-800 mb-3">🎯 Assign Custom Package to Student</h4><div class="grid md:grid-cols-2 gap-4 mb-4"><div><label class="block text-sm font-semibold">Select Student</label><select id="customAssignStudent" class="w-full border rounded-lg p-2"></select></div><div><label class="block text-sm font-semibold">Select Custom Package</label><select id="customAssignPackage" class="w-full border rounded-lg p-2"></select></div></div><button id="assignCustomPackageBtn" class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold">📦 Assign to Student</button><div id="customAssignResult" class="mt-3 hidden p-2 rounded"></div></div>
+                        </div>
+                        
+                        <!-- FREE PACKAGE MANAGEMENT PANEL -->
+                        <div id="adminFreePackagePanel" class="hidden">
+                            <div class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-6 mb-6 border-2 border-orange-200">
+                                <h3 class="text-2xl font-bold text-orange-800 mb-4 flex items-center gap-2">🔓 Free Access Package Management</h3>
+                                <p class="text-gray-600 mb-6">Manage the free package (Package 6) that anyone can access without login. Each paper can be attempted 3 times per device.</p>
+                                <div class="bg-orange-100 p-4 rounded-lg mb-4"><p class="font-semibold">📋 Package Info: Package 6 (Free) | 8 Papers | LKR 0</p><p class="text-sm">Users can access this package without creating an account. Each device gets 3 attempts per paper.</p></div>
+                            </div>
+                            <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-5 mb-6"><h4 class="font-bold text-blue-800 mb-3">📤 Bulk Upload Excel File for Free Package</h4><div class="grid md:grid-cols-3 gap-4 mb-4"><select id="freeBulkGradeSelect" class="border rounded-lg p-2"><option value="10">Grade 10</option><option value="11">Grade 11</option></select><div class="border rounded-lg p-2 bg-gray-100">Package: Free Package (6)</div><select id="freeBulkPaperSelect" class="border rounded-lg p-2"></select></div>
+                            <div class="bg-yellow-50 p-3 rounded-lg mb-3 text-sm"><p class="font-semibold">📋 CSV Format Example (with Images):</p><p class="font-mono text-xs">Question,Option A,Option B,Option C,Option D,Correct Answer,Question Image,Option A Image,Option B Image,Option C Image,Option D Image</p></div>
+                            <div class="upload-zone rounded-xl p-6 text-center bg-white" id="freeUploadZone"><input type="file" id="freeBulkFileInput" accept=".xlsx,.xls,.csv" class="hidden"><div class="text-4xl mb-2">📎</div><p>Click to upload Excel/CSV file for Free Package</p></div>
+                            <div id="freeUploadPreview" class="hidden mt-4 p-3 bg-white rounded-lg border"></div><button id="freeConfirmUploadBtn" class="mt-4 bg-green-700 text-white px-6 py-2 rounded-lg font-semibold hidden">✅ Replace Paper</button></div>
+                            <div class="border-t pt-4"><h4 class="font-bold mb-3">✏️ Edit Free Package Questions Individually</h4><div class="grid md:grid-cols-3 gap-4 mb-4"><select id="freeEditGradeSelect" class="border rounded-lg p-2"><option value="10">Grade 10</option><option value="11">Grade 11</option></select><select id="freeEditPaperSelect" class="border rounded-lg p-2"></select><button id="loadFreeQuestionsBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg">📖 Load Questions</button></div><div id="freeQuestionsEditor" class="space-y-4 max-h-96 overflow-y-auto p-2 bg-gray-50 rounded-xl"></div></div>
+                        </div>
+                        
+                        <!-- PAPER INSIGHTS PANEL -->
+                        <div id="adminInsightsPanel" class="hidden">
+                            <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 mb-6 border-2 border-indigo-200">
+                                <h3 class="text-2xl font-bold text-indigo-800 mb-4 flex items-center gap-2">📊 Paper Performance Insights</h3>
+                                <p class="text-gray-600 mb-6">Analyze how students performed on each question of a paper.</p>
+                                <div class="grid md:grid-cols-4 gap-4 mb-6">
+                                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Select Grade</label><select id="insightGradeSelect" class="w-full px-3 py-2 rounded-lg border-2"><option value="10">Grade 10</option><option value="11">Grade 11</option></select></div>
+                                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Select Package</label><select id="insightPackageSelect" class="w-full px-3 py-2 rounded-lg border-2"><option value="1">Package 1</option><option value="2">Package 2</option><option value="3">Package 3</option><option value="4">Package 4</option><option value="5">Package 5</option><option value="6">🔓 Free Package (6)</option><option id="insightCustomPackageSelect"></option></select></div>
+                                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Select Paper</label><select id="insightPaperSelect" class="w-full px-3 py-2 rounded-lg border-2"></select></div>
+                                    <div class="flex items-end"><button id="loadInsightsBtn" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700">📈 Load Insights</button></div>
+                                </div>
+                            </div>
+                            <div id="insightsResults" class="hidden">
+                                <div class="bg-white rounded-xl p-5 border mb-4">
+                                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                                        <h4 class="font-bold text-lg">📊 Overall Statistics</h4>
+                                        <button id="exportInsightsBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">📥 Export to CSV</button>
+                                    </div>
+                                    <div id="overallStats" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"></div>
+                                </div>
+                                <div class="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-5 border border-amber-200 mb-4">
+                                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                                        <h4 class="font-bold text-lg flex items-center gap-2">🏆 Top Performers <span class="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">Best Scores</span></h4>
+                                        <button id="exportTopPerformersBtn" class="bg-amber-600 text-white px-3 py-1 rounded-lg text-xs font-semibold">📥 Export Top Performers</button>
+                                    </div>
+                                    <div id="topPerformersList" class="space-y-2 max-h-96 overflow-y-auto"></div>
+                                </div>
+                                <div id="questionsInsights" class="space-y-4"></div>
+                            </div>
+                            <div id="insightsLoading" class="hidden text-center py-8"><div class="loading-spinner"></div><p class="mt-2">Loading insights...</p></div>
+                            <div id="insightsEmpty" class="hidden text-center py-8 text-gray-500"><p>No attempts recorded for this paper yet.</p></div>
+                        </div>
+                        
+                        <!-- ACTIVE SESSIONS PANEL -->
+                        <div id="adminSessionsPanel" class="hidden">
+                            <div class="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl p-6 mb-6 border-2 border-cyan-200">
+                                <h3 class="text-2xl font-bold text-cyan-800 mb-4 flex items-center gap-2">🔐 Active User Sessions</h3>
+                                <p class="text-gray-600 mb-6">View all currently active user sessions across all devices. Click "Logout Session" to force logout a user.</p>
+                                <div id="activeSessionsList" class="space-y-3 max-h-96 overflow-y-auto"></div>
+                            </div>
+                        </div>
+                        
+                        <div id="adminAccountRecordsPanel" class="hidden"><div class="bg-purple-50 rounded-xl p-4 mb-6 border-2 border-purple-200"><h3 class="text-xl font-bold text-purple-800 mb-2 flex items-center gap-2">📋 Account Creation Records</h3><p class="text-sm text-purple-600">Complete history of all student accounts created by admin.</p></div><div class="overflow-x-auto"><table class="w-full bg-white rounded-xl overflow-hidden border"><thead class="bg-gray-800 text-white"><table><th class="px-4 py-3 text-left">#</th><th class="px-4 py-3 text-left">Username</th><th class="px-4 py-3 text-left">Grade</th><th class="px-4 py-3 text-left">Created By</th><th class="px-4 py-3 text-left">Created Date</th><th class="px-4 py-3 text-left">Last Login</th><th class="px-4 py-3 text-left">Login Count</th></tr></thead><tbody id="accountRecordsTable"><tr><td colspan="7" class="text-center py-8 text-gray-500">No accounts created yet</td></tr></tbody></table></div><div class="mt-4 flex justify-end"><button id="exportAccountsBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700">📥 Export Accounts to CSV</button></div></div>
+                        <div id="adminResetPanel" class="hidden space-y-4"><div id="resetRequestsContainer" class="space-y-4"></div></div>
+                        <div id="adminPaymentsPanel" class="hidden space-y-4"></div>
+                        <div id="adminCompletedPanel" class="hidden space-y-3"></div>
+                        <div id="adminManagePapersPanel" class="hidden"><div class="bg-indigo-50 rounded-lg p-4 mb-4"><p class="text-indigo-800 font-semibold">📝 Upload / Edit Questions</p><p class="text-sm text-indigo-600">Upload Excel or edit questions individually. Now with Image Support!</p></div>
+                        <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-5 mb-6"><h4 class="font-bold text-blue-800 mb-3">📤 Bulk Upload Excel File (with Images)</h4><div class="grid md:grid-cols-3 gap-4 mb-4"><select id="bulkGradeSelect" class="border rounded-lg p-2"><option value="10">Grade 10</option><option value="11">Grade 11</option></select><select id="bulkPackageSelect" class="border rounded-lg p-2"><option value="1">Package 1</option><option value="2">Package 2</option><option value="3">Package 3</option><option value="4">Package 4</option><option value="5">Package 5</option><option id="bulkCustomPackageSelect"></option></select><select id="bulkPaperSelect" class="border rounded-lg p-2"></select></div>
+                        <div class="bg-yellow-50 p-3 rounded-lg mb-3 text-sm"><p class="font-semibold">📋 CSV Format Example (with Images):</p><p class="font-mono text-xs">Question,Option A,Option B,Option C,Option D,Correct Answer,Question Image,Option A Image,Option B Image,Option C Image,Option D Image</p></div>
+                        <div class="upload-zone rounded-xl p-6 text-center bg-white" id="uploadZone"><input type="file" id="bulkFileInput" accept=".xlsx,.xls,.csv" class="hidden"><div class="text-4xl mb-2">📎</div><p>Click to upload Excel/CSV file</p></div>
+                        <div id="uploadPreview" class="hidden mt-4 p-3 bg-white rounded-lg border"></div><button id="confirmUploadBtn" class="mt-4 bg-green-700 text-white px-6 py-2 rounded-lg font-semibold hidden">✅ Replace Paper</button></div>
+                        <div class="border-t pt-4"><h4 class="font-bold mb-3">✏️ Edit Questions Individually</h4><div class="grid md:grid-cols-4 gap-4 mb-4"><select id="editGradeSelect" class="border rounded-lg p-2"><option value="10">Grade 10</option><option value="11">Grade 11</option></select><select id="editPackageSelect" class="border rounded-lg p-2"><option value="1">Package 1</option><option value="2">Package 2</option><option value="3">Package 3</option><option value="4">Package 4</option><option value="5">Package 5</option><option id="editCustomPackageSelect"></option></select><select id="editPaperSelect" class="border rounded-lg p-2"></select><button id="loadQuestionsBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg">📖 Load Questions</button></div><div id="questionsEditor" class="space-y-4 max-h-96 overflow-y-auto p-2 bg-gray-50 rounded-xl"></div><div class="mt-4"><button id="addNewQuestionBtn" class="bg-emerald-600 text-white px-6 py-2 rounded-lg font-semibold">➕ Add New Question</button></div></div></div>
+                        <div id="adminResetPapersPanel" class="hidden"><div class="bg-orange-50 rounded-lg p-4 mb-4 border border-orange-200"><p class="text-orange-800 font-semibold text-lg">🔄 Reset Student Paper Attempts</p><p class="text-sm text-orange-600">Select a student, grade, package, and paper to reset their attempts. This gives them 3 new attempts.</p></div><div class="grid md:grid-cols-5 gap-4 mb-6"><div><label class="block text-sm font-bold mb-1">Select Student</label><select id="resetStudentSelect" class="w-full border rounded-lg p-2"></select></div><div><label class="block text-sm font-bold mb-1">Grade</label><select id="resetGradeSelect" class="w-full border rounded-lg p-2"><option value="10">Grade 10</option><option value="11">Grade 11</option></select></div><div><label class="block text-sm font-bold mb-1">Package</label><select id="resetPackageSelect" class="w-full border rounded-lg p-2"><option value="1">Package 1</option><option value="2">Package 2</option><option value="3">Package 3</option><option value="4">Package 4</option><option value="5">Package 5</option><option value="6">🔓 Free Package (6)</option><option id="resetCustomPackageSelect"></option></select></div><div><label class="block text-sm font-bold mb-1">Paper Number</label><select id="resetPaperSelect" class="w-full border rounded-lg p-2"></select></div><div class="flex items-end"><button id="resetPaperBtn" class="bg-orange-600 text-white px-4 py-2 rounded-lg w-full font-semibold hover:bg-orange-700">🔄 Reset Paper</button></div></div><div class="border-t pt-4 mt-4"><h4 class="font-bold text-lg text-red-700 mb-3">⚠️ Reset Entire Package</h4><div class="grid md:grid-cols-4 gap-4"><div><label class="block text-sm font-bold mb-1">Select Student</label><select id="resetPackageStudentSelect" class="w-full border rounded-lg p-2"></select></div><div><label class="block text-sm font-bold mb-1">Grade</label><select id="resetPackageGradeSelect" class="w-full border rounded-lg p-2"><option value="10">Grade 10</option><option value="11">Grade 11</option></select></div><div><label class="block text-sm font-bold mb-1">Package</label><select id="resetPackagePkgSelect" class="w-full border rounded-lg p-2"><option value="1">Package 1</option><option value="2">Package 2</option><option value="3">Package 3</option><option value="4">Package 4</option><option value="5">Package 5</option><option value="6">🔓 Free Package (6)</option><option id="resetPackageCustomSelect"></option></select></div><div class="flex items-end"><button id="resetPackageBtnAdmin" class="bg-red-600 text-white px-4 py-2 rounded-lg w-full font-semibold hover:bg-red-700">⚠️ Reset Entire Package</button></div></div></div><div id="resetResultMsg" class="mt-4 p-3 rounded-lg hidden"></div></div>
+                        <div id="adminSettingsPanel" class="hidden"><div class="bg-white rounded-xl p-5 border"><h4 class="font-bold text-lg mb-3">💰 Package Fees</h4><div id="packageFeesList" class="space-y-3"></div></div><div class="bg-white rounded-xl p-5 border mt-4"><h4 class="font-bold text-lg mb-3">🔄 Data Management</h4><button onclick="exportAllData()" class="w-full bg-green-600 text-white py-2 rounded-lg mb-2">📥 Export All Data (JSON)</button><button onclick="clearAllData()" class="w-full bg-red-600 text-white py-2 rounded-lg">⚠️ Clear All Data (Reset System)</button></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONSTANTS ====================
+        const PACKAGE_LIMITS = { 1: 8, 2: 20, 3: 50, 4: 50, 5: 20, 6: 8 }; // Package 6 is Free
+        let PACKAGE_FEES = { 1: 1500, 2: 3000, 3: 5000, 4: 8000, 5: 4000, 6: 0 };
+        const MAX_ATTEMPTS = 3;
+        const TIME_LIMIT_SEC = 3600;
+        
+        const STORAGE = {
+            STUDENTS: 'lms_students',
+            PAYMENTS: 'lms_payments',
+            ATTEMPTS: 'lms_attempts',
+            QUESTIONS: 'lms_questions',
+            SETTINGS: 'lms_settings',
+            ACTIVITY: 'lms_activity',
+            RESETS: 'lms_resets',
+            ACCOUNT_LOGS: 'lms_account_logs',
+            ASSIGNMENTS: 'lms_assignments',
+            CUSTOM_PACKAGES: 'lms_custom_packages',
+            ANSWER_RECORDS: 'lms_answer_records',
+            PAPER_SCORES: 'lms_paper_scores',
+            ACTIVE_SESSIONS: 'lms_active_sessions'
+        };
+        
+        // Sample Questions with image support
+        const SAMPLE_QS = [
+            { id: 1, text: "What is the basic unit of life?", options: ["Atom", "Cell", "Tissue", "Organ"], correct: 1, qImage: "", optImages: ["","","",""] },
+            { id: 2, text: "Which planet is known as the Red Planet?", options: ["Earth", "Venus", "Mars", "Jupiter"], correct: 2, qImage: "", optImages: ["","","",""] },
+            { id: 3, text: "What gas do plants absorb during photosynthesis?", options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"], correct: 2, qImage: "", optImages: ["","","",""] },
+            { id: 4, text: "What is H2O commonly known as?", options: ["Salt", "Water", "Oxygen", "Hydrogen"], correct: 1, qImage: "", optImages: ["","","",""] },
+            { id: 5, text: "Which organ pumps blood?", options: ["Liver", "Brain", "Heart", "Kidney"], correct: 2, qImage: "", optImages: ["","","",""] },
+            { id: 6, text: "What force pulls objects to Earth?", options: ["Magnetism", "Gravity", "Friction", "Electricity"], correct: 1, qImage: "", optImages: ["","","",""] },
+            { id: 7, text: "Which vitamin is produced by sunlight?", options: ["Vitamin A", "Vitamin B", "Vitamin C", "Vitamin D"], correct: 3, qImage: "", optImages: ["","","",""] },
+            { id: 8, text: "What is the chemical symbol for Gold?", options: ["Go", "Gd", "Au", "Ag"], correct: 2, qImage: "", optImages: ["","","",""] },
+            { id: 9, text: "Which is the largest ocean on Earth?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], correct: 3, qImage: "", optImages: ["","","",""] },
+            { id: 10, text: "What is the hardest natural substance?", options: ["Iron", "Diamond", "Gold", "Platinum"], correct: 1, qImage: "", optImages: ["","","",""] }
+        ];
+        
+        // ==================== DEVICE LOCK / SESSION MANAGEMENT ====================
+        function getSessionId() {
+            let sessionId = sessionStorage.getItem('lms_session_id');
+            if (!sessionId) {
+                sessionId = Date.now() + '-' + Math.random().toString(36).substr(2, 16);
+                sessionStorage.setItem('lms_session_id', sessionId);
+            }
+            return sessionId;
+        }
+        
+        function getDeviceInfo() {
+            const ua = navigator.userAgent;
+            let deviceType = 'Desktop';
+            if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) deviceType = 'Tablet';
+            else if (/(Mobile|iPhone|iPod|Android|BlackBerry|Opera Mini|IEMobile)/i.test(ua)) deviceType = 'Mobile';
+            
+            let browser = 'Unknown';
+            if (ua.includes('Chrome')) browser = 'Chrome';
+            else if (ua.includes('Firefox')) browser = 'Firefox';
+            else if (ua.includes('Safari')) browser = 'Safari';
+            else if (ua.includes('Edge')) browser = 'Edge';
+            
+            return { deviceType, browser, ua: ua.substring(0, 100) };
+        }
+        
+        function registerSession(username, grade) {
+            let sessions = JSON.parse(localStorage.getItem(STORAGE.ACTIVE_SESSIONS) || '{}');
+            const deviceInfo = getDeviceInfo();
+            const sessionId = getSessionId();
+            const now = new Date().toISOString();
+            
+            if (sessions[username] && sessions[username].sessionId !== sessionId) {
+                sessions[username] = { sessionId: sessionId, grade: grade, deviceInfo: deviceInfo, loginTime: now, lastActive: now };
+                localStorage.setItem(STORAGE.ACTIVE_SESSIONS, JSON.stringify(sessions));
+                return { success: true, wasConflict: true };
+            } else {
+                sessions[username] = { sessionId: sessionId, grade: grade, deviceInfo: deviceInfo, loginTime: now, lastActive: now };
+                localStorage.setItem(STORAGE.ACTIVE_SESSIONS, JSON.stringify(sessions));
+                return { success: true, wasConflict: false };
+            }
+        }
+        
+        function validateSession(username) {
+            if (!username || username === 'free_user') return true;
+            let sessions = JSON.parse(localStorage.getItem(STORAGE.ACTIVE_SESSIONS) || '{}');
+            const currentSessionId = getSessionId();
+            if (sessions[username] && sessions[username].sessionId === currentSessionId) {
+                sessions[username].lastActive = new Date().toISOString();
+                localStorage.setItem(STORAGE.ACTIVE_SESSIONS, JSON.stringify(sessions));
+                return true;
+            }
+            return false;
+        }
+        
+        function removeSession(username) {
+            if (username === 'free_user') return;
+            let sessions = JSON.parse(localStorage.getItem(STORAGE.ACTIVE_SESSIONS) || '{}');
+            if (sessions[username]) { delete sessions[username]; localStorage.setItem(STORAGE.ACTIVE_SESSIONS, JSON.stringify(sessions)); }
+        }
+        
+        function getAllActiveSessions() { return JSON.parse(localStorage.getItem(STORAGE.ACTIVE_SESSIONS) || '{}'); }
+        function forceLogoutUser(username) { removeSession(username); logActivity('admin', 'force_logout', `Force logged out ${username}`); }
+        
+        let sessionCheckInterval = null;
+        function startSessionValidation() {
+            if (sessionCheckInterval) clearInterval(sessionCheckInterval);
+            sessionCheckInterval = setInterval(() => {
+                if (currentUser && currentUser.username !== 'free_user' && !validateSession(currentUser.username)) {
+                    if (quizActive) { if (timer) clearInterval(timer); quizActive = false; }
+                    currentUser = null; currentGrade = null; isFreeMode = false;
+                    document.getElementById('mainNav').classList.add('hidden');
+                    document.getElementById('sessionExpiredModal').classList.remove('hidden');
+                    document.querySelectorAll('#packagesPage, #papersPage, #quizPage, #resultsPage, #profilePage, #progressPage').forEach(el => el.classList.add('hidden'));
+                    document.getElementById('loginPage').classList.remove('hidden');
+                }
+            }, 5000);
+        }
+        
+        // ==================== SCORE STORAGE ====================
+        function savePaperScore(username, grade, pkgKey, paperNum, score, totalQuestions, attemptNumber) {
+            let scores = JSON.parse(localStorage.getItem(STORAGE.PAPER_SCORES) || '[]');
+            scores.push({ id: Date.now() + Math.random(), username, grade, pkgKey, paperNum, score, totalQuestions, percentage: Math.round((score / totalQuestions) * 100), attemptNumber, timestamp: new Date().toISOString() });
+            while (scores.length > 2000) scores.shift();
+            localStorage.setItem(STORAGE.PAPER_SCORES, JSON.stringify(scores));
+        }
+        
+        function getTopPerformersForPaper(grade, pkgKey, paperNum) {
+            let scores = JSON.parse(localStorage.getItem(STORAGE.PAPER_SCORES) || '[]');
+            let filtered = scores.filter(s => s.grade == grade && s.pkgKey == pkgKey && s.paperNum == paperNum);
+            let bestScores = {};
+            for (let score of filtered) if (!bestScores[score.username] || bestScores[score.username].score < score.score) bestScores[score.username] = score;
+            let performers = Object.values(bestScores);
+            performers.sort((a, b) => b.score - a.score);
+            return performers.map((p, idx) => ({ ...p, rank: idx + 1 }));
+        }
+        
+        // ==================== CORE FUNCTIONS ====================
+        function getAttempts(username, grade, pkgKey, paperNum) { 
+            let attempts = JSON.parse(localStorage.getItem(STORAGE.ATTEMPTS) || '{}'); 
+            return attempts[username]?.[grade]?.[pkgKey]?.[paperNum] || 0; 
+        }
+        
+        function incrementAttempt(username, grade, pkgKey, paperNum) { 
+            let attempts = JSON.parse(localStorage.getItem(STORAGE.ATTEMPTS) || '{}'); 
+            if (!attempts[username]) attempts[username] = {}; 
+            if (!attempts[username][grade]) attempts[username][grade] = {}; 
+            if (!attempts[username][grade][pkgKey]) attempts[username][grade][pkgKey] = {}; 
+            let current = attempts[username][grade][pkgKey][paperNum] || 0; 
+            attempts[username][grade][pkgKey][paperNum] = current + 1; 
+            localStorage.setItem(STORAGE.ATTEMPTS, JSON.stringify(attempts)); 
+            return current + 1; 
+        }
+        
+        function canAttempt(username, grade, pkgKey, paperNum) { 
+            return getAttempts(username, grade, pkgKey, paperNum) < MAX_ATTEMPTS; 
+        }
+        
+        function resetPaperAttemptsAdmin(username, grade, pkgKey, paperNum) { 
+            let attempts = JSON.parse(localStorage.getItem(STORAGE.ATTEMPTS) || '{}'); 
+            if (attempts[username]?.[grade]?.[pkgKey]?.[paperNum]) { 
+                delete attempts[username][grade][pkgKey][paperNum]; 
+                localStorage.setItem(STORAGE.ATTEMPTS, JSON.stringify(attempts)); 
+                logActivity('admin', 'reset_paper', `Reset Paper ${paperNum} for ${username}`); 
+                return true; 
+            } 
+            return false; 
+        }
+        
+        function resetPackageAttemptsAdmin(username, grade, pkgKey) { 
+            let attempts = JSON.parse(localStorage.getItem(STORAGE.ATTEMPTS) || '{}'); 
+            if (attempts[username]?.[grade]?.[pkgKey]) { 
+                delete attempts[username][grade][pkgKey]; 
+                localStorage.setItem(STORAGE.ATTEMPTS, JSON.stringify(attempts)); 
+                logActivity('admin', 'reset_package', `Reset Package ${pkgKey} for ${username}`); 
+                return true; 
+            } 
+            return false; 
+        }
+        
+        // ==================== ANSWER RECORDS ====================
+        function saveAnswerRecord(username, grade, pkgKey, paperNum, questionId, isCorrect, selectedOption, correctOption) {
+            let records = JSON.parse(localStorage.getItem(STORAGE.ANSWER_RECORDS) || '[]');
+            records.push({ id: Date.now() + Math.random(), username, grade, pkgKey, paperNum, questionId, isCorrect, selectedOption, correctOption, timestamp: new Date().toISOString() });
+            while (records.length > 50000) records.shift();
+            localStorage.setItem(STORAGE.ANSWER_RECORDS, JSON.stringify(records));
+        }
+        
+        function getPaperInsights(grade, pkgKey, paperNum) {
+            let records = JSON.parse(localStorage.getItem(STORAGE.ANSWER_RECORDS) || '[]');
+            let filtered = records.filter(r => r.grade == grade && r.pkgKey == pkgKey && r.paperNum == paperNum);
+            let questionStats = {}; let totalStudents = new Set();
+            for (let record of filtered) {
+                totalStudents.add(record.username);
+                let qid = record.questionId;
+                if (!questionStats[qid]) questionStats[qid] = { correct: 0, incorrect: 0, total: 0 };
+                if (record.isCorrect) questionStats[qid].correct++; else questionStats[qid].incorrect++;
+                questionStats[qid].total++;
+            }
+            return { totalAttempts: filtered.length, uniqueStudents: totalStudents.size, questionStats: questionStats };
+        }
+        
+        // ==================== CUSTOM PACKAGES ====================
+        function getCustomPackages() { return JSON.parse(localStorage.getItem(STORAGE.CUSTOM_PACKAGES) || '[]'); }
+        function saveCustomPackages(packages) { localStorage.setItem(STORAGE.CUSTOM_PACKAGES, JSON.stringify(packages)); }
+        function createCustomPackage(name, paperCount, fee, grade) {
+            let packages = getCustomPackages(); let newId = Date.now();
+            packages.push({ id: newId, name: name, paperCount: parseInt(paperCount), fee: parseInt(fee), grade: parseInt(grade), createdAt: new Date().toISOString() });
+            saveCustomPackages(packages);
+            let allQs = JSON.parse(localStorage.getItem(STORAGE.QUESTIONS) || '{}');
+            if (!allQs[grade]) allQs[grade] = {};
+            if (!allQs[grade][`custom_${newId}`]) allQs[grade][`custom_${newId}`] = {};
+            for (let p = 1; p <= paperCount; p++) {
+                if (!allQs[grade][`custom_${newId}`][p]) {
+                    allQs[grade][`custom_${newId}`][p] = SAMPLE_QS.map((q, idx) => ({ ...q, id: Date.now() + Math.random() * 10000 + p * 1000 + idx, text: q.text + ` (Custom: ${name} - Paper ${p})` }));
+                }
+            }
+            localStorage.setItem(STORAGE.QUESTIONS, JSON.stringify(allQs));
+            logActivity('admin', 'create_custom_package', `Created custom package: ${name}`);
+            return newId;
+        }
+        function deleteCustomPackage(pkgId) {
+            let packages = getCustomPackages(); let pkg = packages.find(p => p.id === pkgId); if (!pkg) return false;
+            saveCustomPackages(packages.filter(p => p.id !== pkgId));
+            let allQs = JSON.parse(localStorage.getItem(STORAGE.QUESTIONS) || '{}');
+            if (allQs[pkg.grade] && allQs[pkg.grade][`custom_${pkgId}`]) delete allQs[pkg.grade][`custom_${pkgId}`];
+            localStorage.setItem(STORAGE.QUESTIONS, JSON.stringify(allQs));
+            let assignments = JSON.parse(localStorage.getItem(STORAGE.ASSIGNMENTS) || '{}');
+            for (let username in assignments) for (let grade in assignments[username]) if (assignments[username][grade][`custom_${pkgId}`]) delete assignments[username][grade][`custom_${pkgId}`];
+            localStorage.setItem(STORAGE.ASSIGNMENTS, JSON.stringify(assignments));
+            logActivity('admin', 'delete_custom_package', `Deleted custom package: ${pkg.name}`);
+            return true;
+        }
+        function assignCustomPackageToStudent(username, grade, pkgId) {
+            let assignments = JSON.parse(localStorage.getItem(STORAGE.ASSIGNMENTS) || '{}');
+            if (!assignments[username]) assignments[username] = {};
+            if (!assignments[username][grade]) assignments[username][grade] = {};
+            assignments[username][grade][`custom_${pkgId}`] = { assignedAt: new Date().toISOString(), assignedBy: 'admin', isCustom: true, customId: pkgId };
+            localStorage.setItem(STORAGE.ASSIGNMENTS, JSON.stringify(assignments));
+            logActivity('admin', 'assign_custom_package', `Assigned custom package to ${username}`);
+            return true;
+        }
+        function getAssignedCustomPackagesForUser(username, grade) {
+            let assignments = JSON.parse(localStorage.getItem(STORAGE.ASSIGNMENTS) || '{}');
+            let userAssignments = assignments[username]?.[grade] || {};
+            let customPkgIds = [];
+            for (let key in userAssignments) if (key.startsWith('custom_')) customPkgIds.push(parseInt(key.replace('custom_', '')));
+            let allCustom = getCustomPackages();
+            return allCustom.filter(p => customPkgIds.includes(p.id) && p.grade === parseInt(grade));
+        }
+        
+        // ==================== PACKAGE ACCESS ====================
+        function hasPackageAccess(username, grade, pkgKey) {
+            // Free Package (6) - always accessible
+            if (pkgKey == 6) return true;
+            
+            if (!isNaN(pkgKey) && pkgKey >= 1 && pkgKey <= 5) {
+                let payments = JSON.parse(localStorage.getItem(STORAGE.PAYMENTS) || '{}');
+                if (payments[username]?.[grade]?.[pkgKey]?.status === 'approved') return true;
+                let assignments = JSON.parse(localStorage.getItem(STORAGE.ASSIGNMENTS) || '{}');
+                if (assignments[username]?.[grade]?.[pkgKey]) return true;
+                return false;
+            }
+            let assignments = JSON.parse(localStorage.getItem(STORAGE.ASSIGNMENTS) || '{}');
+            return !!assignments[username]?.[grade]?.[pkgKey];
+        }
+        
+        function getAllUserPackages(username, grade) {
+            let packages = [];
+            for (let i = 1; i <= 6; i++) {
+                let isFree = (i === 6);
+                let hasAccess = isFree ? true : hasPackageAccess(username, grade, i);
+                packages.push({ key: i, name: isFree ? `🔓 Package ${i} (Free)` : `Package ${i}`, paperCount: PACKAGE_LIMITS[i], fee: PACKAGE_FEES[i], isCustom: false, hasAccess: hasAccess, isFree: isFree });
+            }
+            let customPackages = getAssignedCustomPackagesForUser(username, grade);
+            for (let cp of customPackages) packages.push({ key: `custom_${cp.id}`, name: cp.name, paperCount: cp.paperCount, fee: cp.fee, isCustom: true, customId: cp.id, hasAccess: true });
+            return packages;
+        }
+        
+        function getQuestions(grade, pkgKey, paper) { 
+            let all = JSON.parse(localStorage.getItem(STORAGE.QUESTIONS) || '{}'); 
+            return all[grade]?.[pkgKey]?.[paper] || []; 
+        }
+        
+        function saveQuestions(grade, pkgKey, paper, questions) { 
+            let all = JSON.parse(localStorage.getItem(STORAGE.QUESTIONS) || '{}'); 
+            if (!all[grade]) all[grade] = {}; 
+            if (!all[grade][pkgKey]) all[grade][pkgKey] = {}; 
+            all[grade][pkgKey][paper] = questions; 
+            localStorage.setItem(STORAGE.QUESTIONS, JSON.stringify(all)); 
+            logActivity('admin', 'manage_papers', `Updated Paper ${paper}`); 
+        }
+        
+        function deleteEntirePaper(grade, pkgKey, paper) { 
+            let all = JSON.parse(localStorage.getItem(STORAGE.QUESTIONS) || '{}'); 
+            if (all[grade] && all[grade][pkgKey] && all[grade][pkgKey][paper]) { 
+                delete all[grade][pkgKey][paper]; 
+                localStorage.setItem(STORAGE.QUESTIONS, JSON.stringify(all)); 
+                logActivity('admin', 'delete_paper', `Deleted Paper ${paper} from Grade ${grade} Package ${pkgKey}`); 
+                return true; 
+            } 
+            return false; 
+        }
+        
+        function getAllPapersCount() { 
+            let all = JSON.parse(localStorage.getItem(STORAGE.QUESTIONS) || '{}'); 
+            let count = 0; 
+            for (let g in all) for (let p in all[g]) for (let pp in all[g][p]) count++; 
+            return count; 
+        }
+        
+        // Updated Excel Upload with Image Columns
+        function parseExcelAndUpload(file, grade, pkgKey, paper, isFree = false) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+                if (!rows || rows.length < 2) { alert("File is empty!"); return; }
+                const headers = rows[0];
+                const qCol = headers.findIndex(h => h && (h.toString().toLowerCase().includes('question') && !h.toString().toLowerCase().includes('image')));
+                const aCol = headers.findIndex(h => h && (h.toString().toLowerCase().includes('option a') || h.toString().toLowerCase() === 'a'));
+                const bCol = headers.findIndex(h => h && (h.toString().toLowerCase().includes('option b') || h.toString().toLowerCase() === 'b'));
+                const cCol = headers.findIndex(h => h && (h.toString().toLowerCase().includes('option c') || h.toString().toLowerCase() === 'c'));
+                const dCol = headers.findIndex(h => h && (h.toString().toLowerCase().includes('option d') || h.toString().toLowerCase() === 'd'));
+                const correctCol = headers.findIndex(h => h && (h.toString().toLowerCase().includes('correct') || h.toString().toLowerCase().includes('answer')));
+                const qImgCol = headers.findIndex(h => h && (h.toString().toLowerCase().includes('question image') || h.toString().toLowerCase().includes('qimage')));
+                const optAImgCol = headers.findIndex(h => h && (h.toString().toLowerCase().includes('option a image') || h.toString().toLowerCase().includes('aimage')));
+                const optBImgCol = headers.findIndex(h => h && (h.toString().toLowerCase().includes('option b image') || h.toString().toLowerCase().includes('bimage')));
+                const optCImgCol = headers.findIndex(h => h && (h.toString().toLowerCase().includes('option c image') || h.toString().toLowerCase().includes('cimage')));
+                const optDImgCol = headers.findIndex(h => h && (h.toString().toLowerCase().includes('option d image') || h.toString().toLowerCase().includes('dimage')));
+                
+                if (qCol === -1 || aCol === -1 || bCol === -1 || cCol === -1 || dCol === -1) { alert("Required columns (Question, Option A-D) not found!"); return; }
+                let questions = [];
+                for (let i = 1; i < rows.length; i++) {
+                    let row = rows[i];
+                    let qText = row[qCol] ? String(row[qCol]).trim() : "";
+                    let optA = row[aCol] ? String(row[aCol]).trim() : "";
+                    let optB = row[bCol] ? String(row[bCol]).trim() : "";
+                    let optC = row[cCol] ? String(row[cCol]).trim() : "";
+                    let optD = row[dCol] ? String(row[dCol]).trim() : "";
+                    if (!qText || !optA || !optB || !optC || !optD) continue;
+                    let correct = 0;
+                    if (correctCol !== -1 && row[correctCol] !== undefined && row[correctCol] !== "") {
+                        let cv = String(row[correctCol]).toLowerCase().trim();
+                        if (cv === 'a' || cv === '0') correct = 0;
+                        else if (cv === 'b' || cv === '1') correct = 1;
+                        else if (cv === 'c' || cv === '2') correct = 2;
+                        else if (cv === 'd' || cv === '3') correct = 3;
+                    }
+                    let qImage = (qImgCol !== -1 && row[qImgCol]) ? String(row[qImgCol]).trim() : "";
+                    let optImages = [
+                        (optAImgCol !== -1 && row[optAImgCol]) ? String(row[optAImgCol]).trim() : "",
+                        (optBImgCol !== -1 && row[optBImgCol]) ? String(row[optBImgCol]).trim() : "",
+                        (optCImgCol !== -1 && row[optCImgCol]) ? String(row[optCImgCol]).trim() : "",
+                        (optDImgCol !== -1 && row[optDImgCol]) ? String(row[optDImgCol]).trim() : ""
+                    ];
+                    questions.push({ id: Date.now() + i + Math.random(), text: qText, options: [optA, optB, optC, optD], correct: correct, qImage: qImage, optImages: optImages });
+                }
+                if (questions.length === 0) { alert("No valid questions found!"); return; }
+                if (confirm(`Found ${questions.length} questions. Replace Paper ${paper}?`)) { 
+                    saveQuestions(parseInt(grade), pkgKey, parseInt(paper), questions); 
+                    alert(`✅ Uploaded ${questions.length} questions!`);
+                    if (isFree) loadFreeQuestionsToEditor();
+                    else loadQuestionsToEditor();
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // ==================== HELPER FUNCTIONS ====================
+        function logActivity(username, type, details) { 
+            if (username === 'free_user') username = 'FreeUser';
+            let a = JSON.parse(localStorage.getItem(STORAGE.ACTIVITY) || '[]'); 
+            a.unshift({ id: Date.now(), username, type, details, timestamp: new Date().toISOString() }); 
+            while (a.length > 500) a.pop(); 
+            localStorage.setItem(STORAGE.ACTIVITY, JSON.stringify(a)); 
+        }
+        function logAccountCreation(username, grade, createdBy) { let logs = JSON.parse(localStorage.getItem(STORAGE.ACCOUNT_LOGS) || '[]'); logs.unshift({ id: Date.now(), username, grade, createdBy, createdAt: new Date().toISOString() }); localStorage.setItem(STORAGE.ACCOUNT_LOGS, JSON.stringify(logs)); }
+        function getActivities(limit) { return JSON.parse(localStorage.getItem(STORAGE.ACTIVITY) || '[]').slice(0, limit || 100); }
+        
+        function getActivePackagesCount() {
+            let students = JSON.parse(localStorage.getItem(STORAGE.STUDENTS) || '{}');
+            let payments = JSON.parse(localStorage.getItem(STORAGE.PAYMENTS) || '{}');
+            let assignments = JSON.parse(localStorage.getItem(STORAGE.ASSIGNMENTS) || '{}');
+            let activeCount = 0;
+            for (let username in students) {
+                let grade = students[username].grade;
+                for (let pkg = 1; pkg <= 5; pkg++) { if (payments[username]?.[grade]?.[pkg]?.status === 'approved') activeCount++; else if (assignments[username]?.[grade]?.[pkg]) activeCount++; }
+                for (let key in (assignments[username]?.[grade] || {})) if (key.startsWith('custom_')) activeCount++;
+            }
+            return activeCount;
+        }
+        
+        // ==================== USER MANAGEMENT ====================
+        function createAccount(username, password, grade) {
+            let students = JSON.parse(localStorage.getItem(STORAGE.STUDENTS) || '{}');
+            if (students[username]) return { success: false, error: "Username already exists!" };
+            if (username.length < 3) return { success: false, error: "Username must be at least 3 characters!" };
+            if (password.length < 4) return { success: false, error: "Password must be at least 4 characters!" };
+            students[username] = { username, password, grade: parseInt(grade), createdAt: new Date().toISOString(), lastLogin: null, loginCount: 0 };
+            localStorage.setItem(STORAGE.STUDENTS, JSON.stringify(students));
+            logActivity('admin', 'create_account', `Created account for ${username} (Grade ${grade})`);
+            logAccountCreation(username, grade, 'admin');
+            return { success: true, user: students[username] };
+        }
+        
+        function login(username, password, grade) {
+            let students = JSON.parse(localStorage.getItem(STORAGE.STUDENTS) || '{}');
+            if (!students[username]) return { success: false, error: "Username not found! Contact admin." };
+            if (students[username].password !== password) return { success: false, error: "Wrong password!" };
+            if (students[username].grade !== parseInt(grade)) return { success: false, error: `This account is for Grade ${students[username].grade}` };
+            const sessionResult = registerSession(username, grade);
+            students[username].lastLogin = new Date().toISOString();
+            students[username].loginCount = (students[username].loginCount || 0) + 1;
+            localStorage.setItem(STORAGE.STUDENTS, JSON.stringify(students));
+            logActivity(username, 'login', `Logged into Grade ${grade}${sessionResult.wasConflict ? ' (previous session terminated)' : ''}`);
+            return { success: true, user: students[username], wasConflict: sessionResult.wasConflict };
+        }
+        
+        // Free Access Function
+        let isFreeMode = false;
+        function startFreeAccess(grade) {
+            isFreeMode = true;
+            currentUser = { username: 'free_user', grade: parseInt(grade), createdAt: new Date().toISOString(), loginCount: 1 };
+            currentGrade = parseInt(grade);
+            document.getElementById('mainNav').classList.add('hidden'); // Hide nav for free users
+            showPackages();
+        }
+        
+        // ==================== PAYMENT MANAGEMENT ====================
+        function submitPayment(username, grade, pkgNum, slipData, ref, date, amount) {
+            let payments = JSON.parse(localStorage.getItem(STORAGE.PAYMENTS) || '{}');
+            if (!payments[username]) payments[username] = {};
+            if (!payments[username][grade]) payments[username][grade] = {};
+            payments[username][grade][pkgNum] = { status: 'pending', transactionRef: ref, paymentDate: date, amount: parseInt(amount), slipData: slipData, submittedAt: new Date().toISOString() };
+            localStorage.setItem(STORAGE.PAYMENTS, JSON.stringify(payments));
+            logActivity(username, 'payment', `Payment for Package ${pkgNum} - LKR ${amount}`);
+        }
+        
+        function getPaymentStatus(username, grade, pkgNum) { let payments = JSON.parse(localStorage.getItem(STORAGE.PAYMENTS) || '{}'); return payments[username]?.[grade]?.[pkgNum]?.status || null; }
+        function approvePayment(username, grade, pkgNum) { let payments = JSON.parse(localStorage.getItem(STORAGE.PAYMENTS) || '{}'); if (payments[username]?.[grade]?.[pkgNum]) { payments[username][grade][pkgNum].status = 'approved'; payments[username][grade][pkgNum].approvedAt = new Date().toISOString(); localStorage.setItem(STORAGE.PAYMENTS, JSON.stringify(payments)); logActivity(username, 'payment_approved', `Package ${pkgNum} activated`); return true; } return false; }
+        
+        // ==================== QUESTION INITIALIZATION ====================
+        function initQuestions() {
+            if (!localStorage.getItem(STORAGE.QUESTIONS)) {
+                let qs = {};
+                for (let grade of [10, 11]) {
+                    qs[grade] = {};
+                    for (let pkg = 1; pkg <= 6; pkg++) {
+                        qs[grade][pkg] = {};
+                        const limit = PACKAGE_LIMITS[pkg];
+                        for (let paper = 1; paper <= limit; paper++) {
+                            let paperQuestions = SAMPLE_QS.map((q, idx) => ({ ...q, id: Date.now() + Math.random() * 10000 + paper * 1000 + idx, text: q.text + (paper > 1 ? ` (Paper ${paper})` : "") }));
+                            qs[grade][pkg][paper] = paperQuestions;
+                        }
+                    }
+                }
+                localStorage.setItem(STORAGE.QUESTIONS, JSON.stringify(qs));
+            }
+        }
+        
+        // ==================== PASSWORD RESET ====================
+        function requestPasswordReset(username) {
+            let students = JSON.parse(localStorage.getItem(STORAGE.STUDENTS) || '{}');
+            if (!students[username]) return { success: false, error: "Username not found" };
+            let resets = JSON.parse(localStorage.getItem(STORAGE.RESETS) || '[]');
+            if (resets.find(r => r.username === username && r.status === 'pending')) return { success: false, error: "Request already pending" };
+            resets.unshift({ id: Date.now(), username, requestedAt: new Date().toISOString(), status: 'pending' });
+            localStorage.setItem(STORAGE.RESETS, JSON.stringify(resets));
+            logActivity(username, 'password_reset_request', `Requested password reset`);
+            return { success: true };
+        }
+        function getResetRequests() { return JSON.parse(localStorage.getItem(STORAGE.RESETS) || '[]'); }
+        function approveReset(requestId, newPassword) { let resets = JSON.parse(localStorage.getItem(STORAGE.RESETS) || '[]'); let request = resets.find(r => r.id == requestId); if (!request) return false; let students = JSON.parse(localStorage.getItem(STORAGE.STUDENTS) || '{}'); if (students[request.username]) { students[request.username].password = newPassword; localStorage.setItem(STORAGE.STUDENTS, JSON.stringify(students)); request.status = 'approved'; request.approvedAt = new Date().toISOString(); request.newPassword = newPassword; localStorage.setItem(STORAGE.RESETS, JSON.stringify(resets)); logActivity(request.username, 'password_reset_approved', `Password reset approved`); return true; } return false; }
+        function rejectReset(requestId) { let resets = JSON.parse(localStorage.getItem(STORAGE.RESETS) || '[]'); let request = resets.find(r => r.id == requestId); if (!request) return false; request.status = 'rejected'; request.rejectedAt = new Date().toISOString(); localStorage.setItem(STORAGE.RESETS, JSON.stringify(resets)); return true; }
+        
+        function getUsernamesByGrade(grade) { let students = JSON.parse(localStorage.getItem(STORAGE.STUDENTS) || '{}'); return Object.keys(students).filter(u => students[u].grade === parseInt(grade)); }
+        function getAllStudentsList() { return JSON.parse(localStorage.getItem(STORAGE.STUDENTS) || '{}'); }
+        function getAllCompletedPapers() { let attempts = JSON.parse(localStorage.getItem(STORAGE.ATTEMPTS) || '{}'); let all = []; for (let u in attempts) for (let g in attempts[u]) for (let p in attempts[u][g]) for (let paper in attempts[u][g][p]) if (attempts[u][g][p][paper] >= MAX_ATTEMPTS) all.push({ username: u, grade: g, packageKey: p, paperNum: paper }); return all; }
+        function getTopStudents() { let attempts = JSON.parse(localStorage.getItem(STORAGE.ATTEMPTS) || '{}'); let studentData = {}; for (let u in attempts) { let total = 0; for (let g in attempts[u]) for (let p in attempts[u][g]) for (let paper in attempts[u][g][p]) total += attempts[u][g][p][paper]; studentData[u] = total; } return Object.entries(studentData).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, attempts]) => ({ name, attempts })); }
+        
+        // ==================== SETTINGS ====================
+        function loadSettings() { let saved = localStorage.getItem(STORAGE.SETTINGS); if (saved) { let s = JSON.parse(saved); if (s.packageFees) PACKAGE_FEES = s.packageFees; } }
+        function saveSettings() { localStorage.setItem(STORAGE.SETTINGS, JSON.stringify({ packageFees: PACKAGE_FEES })); }
+        function editPackageFee(pkg) { 
+            if (pkg == 6) { alert("Free Package (6) fee cannot be changed."); return; }
+            let newFee = prompt(`Package ${pkg} current fee: LKR ${PACKAGE_FEES[pkg]}\nEnter new fee:`, PACKAGE_FEES[pkg]); 
+            if (newFee && !isNaN(newFee) && parseInt(newFee) > 0) { PACKAGE_FEES[pkg] = parseInt(newFee); saveSettings(); alert(`Updated!`); loadAdminData(); } 
+        }
+        function exportAllData() { let data = { students: JSON.parse(localStorage.getItem(STORAGE.STUDENTS) || '{}'), payments: JSON.parse(localStorage.getItem(STORAGE.PAYMENTS) || '{}'), attempts: JSON.parse(localStorage.getItem(STORAGE.ATTEMPTS) || '{}'), activity: JSON.parse(localStorage.getItem(STORAGE.ACTIVITY) || '[]'), resets: JSON.parse(localStorage.getItem(STORAGE.RESETS) || '[]'), accountLogs: JSON.parse(localStorage.getItem(STORAGE.ACCOUNT_LOGS) || '[]'), assignments: JSON.parse(localStorage.getItem(STORAGE.ASSIGNMENTS) || '{}'), settings: JSON.parse(localStorage.getItem(STORAGE.SETTINGS) || '{}'), customPackages: getCustomPackages(), answerRecords: JSON.parse(localStorage.getItem(STORAGE.ANSWER_RECORDS) || '[]'), paperScores: JSON.parse(localStorage.getItem(STORAGE.PAPER_SCORES) || '[]'), activeSessions: JSON.parse(localStorage.getItem(STORAGE.ACTIVE_SESSIONS) || '{}') }; let blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `science_lms_backup_${new Date().toISOString().split('T')[0]}.json`; a.click(); URL.revokeObjectURL(blob); alert('Data exported!'); }
+        function clearAllData() { if (confirm('⚠️ DELETE ALL DATA? This cannot be undone!')) { if (prompt('Type "DELETE" to confirm') === 'DELETE') { localStorage.clear(); alert('Cleared. Reloading...'); location.reload(); } } }
+        function exportAccountsToCSV() { let students = getAllStudentsList(); let csvRows = [['Username', 'Grade', 'Created Date', 'Last Login', 'Login Count']]; for (let [username, data] of Object.entries(students)) csvRows.push([username, data.grade, new Date(data.createdAt).toLocaleString(), data.lastLogin ? new Date(data.lastLogin).toLocaleString() : 'Never', data.loginCount || 0]); let csvContent = csvRows.map(row => row.join(',')).join('\n'); let blob = new Blob([csvContent], { type: 'text/csv' }); let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `accounts_export_${new Date().toISOString().split('T')[0]}.csv`; a.click(); URL.revokeObjectURL(blob); alert('Accounts exported to CSV!'); }
+        
+        // ==================== GLOBAL STATE ====================
+        let currentUser = null, currentGrade = null, currentPackageKey = null, currentPaper = null;
+        let currentQuestions = [], userAnswers = {}, currentIndex = 0, quizActive = false;
+        let timer = null, timeLeft = 0, quizResult = null;
+        let currentEditQ = null, editGrade = null, editPkgKey = null, editPaper = null;
+        
+        // ==================== UI RENDERING ====================
+        function showPackages() {
+            document.querySelectorAll('#loginPage, #profilePage, #progressPage, #packagesPage, #papersPage, #quizPage, #resultsPage').forEach(el => el.classList.add('hidden'));
+            document.getElementById('packagesPage').classList.remove('hidden');
+            document.getElementById('gradeLabel').innerText = currentGrade;
+            let displayName = (currentUser && currentUser.username === 'free_user') ? 'Guest (Free Access)' : currentUser.username;
+            document.getElementById('userName').innerText = displayName;
+            let grid = document.getElementById('packagesGrid');
+            grid.innerHTML = '';
+            let allPackages = getAllUserPackages(currentUser.username, currentGrade);
+            for (let pkg of allPackages) {
+                let hasAccess = pkg.hasAccess;
+                let isPending = false;
+                let fee = pkg.fee;
+                if (!pkg.isCustom && !hasAccess && pkg.key != 6) { let status = getPaymentStatus(currentUser.username, currentGrade, pkg.key); isPending = status === 'pending'; }
+                let div = document.createElement('div');
+                let bgClass = '';
+                if (hasAccess) bgClass = 'border-green-500 bg-green-50';
+                else if (isPending) bgClass = 'border-yellow-500 bg-yellow-50';
+                else if (pkg.isFree) bgClass = 'border-orange-500 bg-orange-50';
+                else bgClass = 'border-gray-200 bg-white';
+                div.className = `package-card rounded-xl p-5 text-center border-2 transition ${bgClass}`;
+                let accessText = hasAccess ? (pkg.isFree ? '🔓 Free Access' : '✓ Purchased') : (isPending ? '⏳ Pending Verification' : '🔒 Locked');
+                let badge = pkg.isCustom ? '<span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mb-2">✨ Custom</span>' : (pkg.isFree ? '<span class="inline-block bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full mb-2">🔓 Free</span>' : '');
+                div.innerHTML = `<div class="text-4xl mb-2">${pkg.isCustom ? '✨' : (pkg.isFree ? '🔓' : '📦')}</div>${badge}<div class="text-xl font-bold">${pkg.name}</div><div class="text-sm text-gray-500">${pkg.paperCount} papers</div><div class="text-lg font-bold text-green-700 mt-2">${fee === 0 ? 'FREE' : `LKR ${fee}`}</div><div class="text-xs text-blue-500 mt-1">Each paper: ${MAX_ATTEMPTS} attempts</div><div class="mt-3 text-sm font-semibold">${accessText}</div>`;
+                let btn = document.createElement('button');
+                btn.className = `mt-3 w-full text-white px-4 py-2 rounded-lg font-semibold ${hasAccess ? 'bg-green-600 hover:bg-green-700' : isPending ? 'bg-yellow-600' : pkg.isFree ? 'bg-orange-600 hover:bg-orange-700' : 'bg-gray-400 cursor-not-allowed'}`;
+                btn.innerText = hasAccess ? 'View Papers' : (isPending ? 'Check Status' : (pkg.isFree ? 'Start Free Learning' : `Purchase (LKR ${fee})`));
+                btn.onclick = () => { 
+                    if (hasAccess) { 
+                        currentPackageKey = pkg.key; 
+                        showPapers(); 
+                    } else if (isPending) { 
+                        alert('Payment pending verification.'); 
+                    } else if (pkg.isCustom) { 
+                        alert('Custom packages can only be assigned by admin.'); 
+                    } else if (pkg.isFree) {
+                        currentPackageKey = pkg.key;
+                        showPapers();
+                    } else if (pkg.key != 6) { 
+                        showPaymentModal(pkg.key); 
+                    } 
+                };
+                if (!hasAccess && !isPending && !pkg.isFree && pkg.key != 6) btn.disabled = true;
+                div.appendChild(btn);
+                grid.appendChild(div);
+            }
+        }
+        
+        function showPapers() {
+            document.getElementById('packagesPage').classList.add('hidden');
+            document.getElementById('papersPage').classList.remove('hidden');
+            let isCustom = currentPackageKey.toString().startsWith('custom_');
+            let isFree = (currentPackageKey == 6);
+            let paperLimit = 0;
+            if (isCustom) { let customId = parseInt(currentPackageKey.replace('custom_', '')); let customPkgs = getCustomPackages(); let pkg = customPkgs.find(p => p.id === customId); paperLimit = pkg ? pkg.paperCount : 0; document.getElementById('currentPkgName').innerText = pkg ? pkg.name : 'Custom Package'; }
+            else { paperLimit = PACKAGE_LIMITS[currentPackageKey]; document.getElementById('currentPkgName').innerText = isFree ? `🔓 Package ${currentPackageKey} (Free)` : `Package ${currentPackageKey}`; }
+            let attempted = 0;
+            for (let i = 1; i <= paperLimit; i++) if (getAttempts(currentUser.username, currentGrade, currentPackageKey, i) > 0) attempted++;
+            document.getElementById('attemptedPapersCount').innerText = attempted;
+            document.getElementById('totalPapersCount').innerText = paperLimit;
+            document.getElementById('progressFill').style.width = `${(attempted / paperLimit) * 100}%`;
+            let grid = document.getElementById('papersGrid');
+            grid.innerHTML = '';
+            for (let paper = 1; paper <= paperLimit; paper++) {
+                let attemptsUsed = getAttempts(currentUser.username, currentGrade, currentPackageKey, paper);
+                let remaining = MAX_ATTEMPTS - attemptsUsed;
+                let canStart = remaining > 0;
+                let div = document.createElement('div');
+                div.className = `paper-card relative rounded-xl p-4 text-center border-2 transition ${!canStart ? 'bg-gray-100 border-red-300 opacity-70' : remaining === 1 ? 'bg-orange-50 border-orange-300' : 'bg-white border-gray-200 hover:shadow-md'}`;
+                div.innerHTML = `<div class="text-3xl mb-2">📄</div><div class="font-bold text-lg">Paper ${paper}</div><div class="text-xs mt-1 ${!canStart ? 'text-red-600 font-bold' : 'text-gray-500'}">${!canStart ? '❌ NO ATTEMPTS LEFT' : remaining === 1 ? '⚠️ 1 attempt left!' : `✅ ${remaining} attempts left`}</div><div class="text-xs text-blue-500 mt-1">⏰ 1 hour limit</div>`;
+                if (canStart) {
+                    let btn = document.createElement('button');
+                    btn.className = `mt-3 w-full text-white px-3 py-2 rounded-lg text-sm font-semibold ${remaining === 1 ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-600 hover:bg-green-700'}`;
+                    btn.innerText = remaining === 1 ? `Start (Last attempt!)` : `Start Paper (${remaining} tries left)`;
+                    btn.onclick = () => startPaper(paper);
+                    div.appendChild(btn);
+                } else {
+                    let btn = document.createElement('button');
+                    btn.className = `mt-3 w-full bg-gray-400 text-white px-3 py-2 rounded-lg text-sm font-semibold cursor-not-allowed`;
+                    btn.innerText = `No attempts left - Contact admin`;
+                    btn.onclick = () => alert('No attempts remaining. Contact admin for reset.');
+                    div.appendChild(btn);
+                }
+                grid.appendChild(div);
+            }
+        }
+        
+        function startPaper(paperNum) {
+            if (!canAttempt(currentUser.username, currentGrade, currentPackageKey, paperNum)) { alert(`No attempts left!`); return; }
+            let qs = getQuestions(currentGrade, currentPackageKey, paperNum);
+            if (!qs.length) { alert("No questions available."); return; }
+            if (!confirm(`⚠️ You have 1 HOUR to complete Paper ${paperNum}!\nThis will use 1 attempt.\n\nProceed?`)) return;
+            currentPaper = paperNum;
+            currentQuestions = JSON.parse(JSON.stringify(qs));
+            userAnswers = {};
+            currentIndex = 0;
+            timeLeft = TIME_LIMIT_SEC;
+            quizActive = true;
+            document.getElementById('papersPage').classList.add('hidden');
+            document.getElementById('quizPage').classList.remove('hidden');
+            document.getElementById('qTotal').innerText = currentQuestions.length;
+            startTimer();
+            renderQuestion();
+        }
+        
+        function renderQuestion() {
+            if (!quizActive || currentIndex >= currentQuestions.length) return;
+            let q = currentQuestions[currentIndex];
+            const qImgContainer = document.getElementById('questionImageContainer');
+            if (q.qImage && q.qImage.trim() !== "") {
+                qImgContainer.innerHTML = `<img src="${q.qImage}" alt="Question Image" class="quiz-image mx-auto" onerror="this.style.display='none'">`;
+            } else {
+                qImgContainer.innerHTML = '';
+            }
+            document.getElementById('questionText').innerHTML = q.text;
+            let selected = userAnswers[q.id] !== undefined ? userAnswers[q.id] : -1;
+            let html = '';
+            q.options.forEach((opt, idx) => {
+                let optImgHtml = (q.optImages && q.optImages[idx] && q.optImages[idx].trim() !== "") ? `<img src="${q.optImages[idx]}" class="option-image inline-block ml-2 align-middle" onerror="this.style.display='none'">` : '';
+                html += `<div onclick="selectAnswer(${idx})" class="option-card border-2 rounded-xl p-3 flex items-center gap-3 cursor-pointer transition ${selected === idx ? 'selected' : 'border-gray-200 bg-white hover:bg-gray-50'}"><div class="w-5 h-5 rounded-full border-2 flex items-center justify-center ${selected === idx ? 'bg-white border-white' : 'border-gray-400'}">${selected === idx ? '✓' : ''}</div><span>${opt}</span>${optImgHtml}</div>`;
+            });
+            document.getElementById('optionsContainer').innerHTML = html;
+            document.getElementById('qCurrent').innerText = currentIndex + 1;
+            document.getElementById('quizProgress').style.width = `${((currentIndex + 1) / currentQuestions.length) * 100}%`;
+        }
+        
+        window.selectAnswer = function(idx) { let q = currentQuestions[currentIndex]; userAnswers[q.id] = idx; renderQuestion(); };
+        function nextQuestion() { let q = currentQuestions[currentIndex]; if (userAnswers[q.id] === undefined) { alert("Please select an answer!"); return; } if (currentIndex + 1 < currentQuestions.length) { currentIndex++; renderQuestion(); } else finishQuiz(); }
+        function prevQuestion() { if (currentIndex > 0) { currentIndex--; renderQuestion(); } }
+        function startTimer() { if (timer) clearInterval(timer); timer = setInterval(() => { if (!quizActive) return; if (timeLeft <= 0) { clearInterval(timer); alert("⏰ Time's up!"); finishQuiz(); } else { timeLeft--; let mins = Math.floor(timeLeft / 60); let secs = timeLeft % 60; document.getElementById('timerDisplay').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`; if (timeLeft <= 300) document.getElementById('timerDisplay').classList.add('timer-warning'); } }, 1000); }
+        
+        function finishQuiz() {
+            if (!quizActive) return;
+            quizActive = false;
+            if (timer) clearInterval(timer);
+            let elapsed = TIME_LIMIT_SEC - timeLeft;
+            let correct = 0;
+            let details = [];
+            for (let q of currentQuestions) {
+                let userAns = userAnswers[q.id];
+                let isCorrect = (userAns === q.correct);
+                if (isCorrect) correct++;
+                details.push({ question: q.text, userAnswer: userAns !== undefined ? q.options[userAns] : "No answer", correctAnswer: q.options[q.correct], isCorrect });
+                saveAnswerRecord(currentUser.username, currentGrade, currentPackageKey, currentPaper, q.id, isCorrect, userAns, q.correct);
+            }
+            let percentage = Math.round(correct / currentQuestions.length * 100);
+            let newAttemptCount = incrementAttempt(currentUser.username, currentGrade, currentPackageKey, currentPaper);
+            let remaining = MAX_ATTEMPTS - newAttemptCount;
+            savePaperScore(currentUser.username, currentGrade, currentPackageKey, currentPaper, correct, currentQuestions.length, newAttemptCount);
+            quizResult = { correct, total: currentQuestions.length, percentage, elapsed, details, remaining };
+            document.getElementById('quizPage').classList.add('hidden');
+            document.getElementById('resultsPage').classList.remove('hidden');
+            document.getElementById('finalScore').innerHTML = `${correct}/${currentQuestions.length} (${percentage}%)`;
+            document.getElementById('timeTakenDisplay').innerHTML = `${Math.floor(elapsed / 60)} min ${elapsed % 60} sec`;
+            document.getElementById('attemptsLeftDisplay').innerHTML = remaining > 0 ? `You have ${remaining} attempt(s) remaining.` : `No attempts remaining. Contact admin.`;
+            canvasConfetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
+        
+        function downloadPDF() { if (!quizResult) return; let container = document.createElement('div'); let pkgDisplay = currentPackageKey.toString().startsWith('custom_') ? 'Custom Package' : `Package ${currentPackageKey}`; container.innerHTML = `<div style="padding:20px"><h1 style="color:#2d6a4f">Science with Denuka</h1><p><strong>Score:</strong> ${quizResult.correct}/${quizResult.total} (${quizResult.percentage}%)</p><p><strong>Student:</strong> ${currentUser.username === 'free_user' ? 'Guest (Free Access)' : currentUser.username}</p><p><strong>Grade:</strong> ${currentGrade}</p><p><strong>Package:</strong> ${pkgDisplay}</p><p><strong>Paper:</strong> ${currentPaper}</p><p><strong>Time:</strong> ${Math.floor(quizResult.elapsed/60)} min ${quizResult.elapsed%60} sec</p><p><strong>Attempts left:</strong> ${quizResult.remaining}</p><hr>${quizResult.details.map((d,i)=>`<div><strong>Q${i+1}:</strong> ${d.question}<br>Your: ${d.userAnswer}${!d.isCorrect ? `<br>Correct: ${d.correctAnswer}` : ''}</div>`).join('')}</div>`; html2pdf().set({ margin: 0.5, filename: `Paper_${currentPaper}_${currentUser.username === 'free_user' ? 'Guest' : currentUser.username}.pdf` }).from(container).save(); }
+        function downloadAnswers() { if (!currentQuestions.length) { alert("No questions"); return; } let content = `SCIENCE WITH DENUKA - ANSWER SHEET\nStudent: ${currentUser.username === 'free_user' ? 'Guest (Free Access)' : currentUser.username}\nPaper: ${currentPaper}\n\n`; currentQuestions.forEach((q, i) => { let ans = userAnswers[q.id]; content += `Q${i+1}: ${q.text}\n   Answer: ${ans !== undefined ? q.options[ans] : "Not answered"}\n\n`; }); let blob = new Blob([content], { type: "text/plain" }); let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Paper_${currentPaper}_Answers.txt`; a.click(); URL.revokeObjectURL(blob); }
+        function showPaymentModal(pkgNum) { document.getElementById('payPkgNum').innerText = pkgNum; document.getElementById('payFeeAmount').innerText = PACKAGE_FEES[pkgNum]; document.getElementById('paymentModal').classList.remove('hidden'); window.selectedPkg = pkgNum; }
+        function handlePaymentSubmit() { let file = document.getElementById('bankSlipInput').files[0]; if (!file) { alert("Please upload bank slip"); return; } let ref = document.getElementById('transactionRefInput').value; let date = document.getElementById('paymentDateInput').value; let amount = document.getElementById('amountPaidInput').value; if (!ref || !date || !amount) { alert("Please fill all fields"); return; } let reader = new FileReader(); reader.onload = (evt) => { submitPayment(currentUser.username, currentGrade, window.selectedPkg, evt.target.result, ref, date, amount); document.getElementById('paymentModal').classList.add('hidden'); document.getElementById('waitingPkgNum').innerText = window.selectedPkg; document.getElementById('waitingModal').classList.remove('hidden'); document.getElementById('bankSlipInput').value = ''; document.getElementById('transactionRefInput').value = ''; document.getElementById('paymentDateInput').value = ''; document.getElementById('amountPaidInput').value = ''; showPackages(); alert("✅ Payment submitted! Awaiting admin approval."); }; reader.readAsDataURL(file); }
+        function loadProgressPage() { if (!currentUser) return; let html = ''; let allPackages = getAllUserPackages(currentUser.username, currentGrade); for (let pkg of allPackages) { let hasAccess = pkg.hasAccess; if (!hasAccess && !pkg.isFree) { html += `<div class="bg-white rounded-xl p-4 border"><div class="font-bold">${pkg.name}</div><div class="text-red-500">Not purchased</div><div class="text-xs text-gray-400 mt-1">${pkg.paperCount} papers available</div></div>`; continue; } let totalAttempts = 0, maxAttempts = 0; for (let i = 1; i <= pkg.paperCount; i++) { totalAttempts += getAttempts(currentUser.username, currentGrade, pkg.key, i); maxAttempts += MAX_ATTEMPTS; } let remaining = maxAttempts - totalAttempts; let percent = maxAttempts ? Math.round(remaining / maxAttempts * 100) : 0; html += `<div class="bg-white rounded-xl p-4 border shadow-sm"><div class="flex justify-between items-center mb-3"><span class="font-bold text-lg">${pkg.name}</span><span class="text-sm font-semibold ${percent > 50 ? 'text-green-600' : percent > 20 ? 'text-yellow-600' : 'text-red-600'}">${percent}% remaining</span></div><div class="w-full bg-gray-200 rounded-full h-3 mb-2"><div class="bg-green-600 h-3 rounded-full" style="width:${percent}%"></div></div><div class="flex justify-between text-sm"><span>Remaining attempts: ${remaining}</span><span>Total: ${maxAttempts}</span></div><div class="text-xs text-gray-400 mt-1">${pkg.paperCount} papers total</div></div>`; } document.getElementById('progressSummary').innerHTML = html; }
+        
+        // ==================== INSIGHTS FUNCTIONS ====================
+        function loadPaperInsights() {
+            let grade = document.getElementById('insightGradeSelect').value;
+            let pkgKey = document.getElementById('insightPackageSelect').value;
+            let paperNum = document.getElementById('insightPaperSelect').value;
+            if (!pkgKey || !paperNum) { alert("Please select package and paper"); return; }
+            document.getElementById('insightsResults').classList.add('hidden'); document.getElementById('insightsEmpty').classList.add('hidden'); document.getElementById('insightsLoading').classList.remove('hidden');
+            setTimeout(() => {
+                let insights = getPaperInsights(parseInt(grade), pkgKey, parseInt(paperNum));
+                let questions = getQuestions(parseInt(grade), pkgKey, parseInt(paperNum));
+                let topPerformers = getTopPerformersForPaper(parseInt(grade), pkgKey, parseInt(paperNum));
+                document.getElementById('insightsLoading').classList.add('hidden');
+                if (insights.totalAttempts === 0 && topPerformers.length === 0) { document.getElementById('insightsEmpty').classList.remove('hidden'); return; }
+                let correctTotal = 0; for (let qid in insights.questionStats) correctTotal += insights.questionStats[qid].correct;
+                let overallAccuracy = insights.totalAttempts > 0 ? Math.round((correctTotal / insights.totalAttempts) * 100) : 0;
+                document.getElementById('overallStats').innerHTML = `<div class="bg-green-50 rounded-lg p-3 text-center"><div class="text-2xl font-bold text-green-700">${insights.uniqueStudents}</div><div class="text-xs">Students Attempted</div></div><div class="bg-blue-50 rounded-lg p-3 text-center"><div class="text-2xl font-bold text-blue-700">${insights.totalAttempts}</div><div class="text-xs">Total Question Attempts</div></div><div class="bg-purple-50 rounded-lg p-3 text-center"><div class="text-2xl font-bold text-purple-700">${correctTotal}</div><div class="text-xs">Correct Answers</div></div><div class="bg-orange-50 rounded-lg p-3 text-center"><div class="text-2xl font-bold text-orange-700">${overallAccuracy}%</div><div class="text-xs">Overall Accuracy</div></div>`;
+                if (topPerformers.length === 0) document.getElementById('topPerformersList').innerHTML = '<div class="text-center py-4 text-gray-500">No scores recorded yet.</div>';
+                else document.getElementById('topPerformersList').innerHTML = topPerformers.map(p => `<div class="top-performer-card bg-white border rounded-lg p-3 flex justify-between items-center hover:shadow transition"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${p.rank === 1 ? 'bg-yellow-400 text-yellow-900' : p.rank === 2 ? 'bg-gray-300 text-gray-700' : p.rank === 3 ? 'bg-amber-600 text-white' : 'bg-blue-100 text-blue-700'}">${p.rank}</div><div><div class="font-semibold">${p.username}</div><div class="text-xs text-gray-500">Attempt #${p.attemptNumber}</div></div></div><div class="text-right"><div class="font-bold text-green-700">${p.score}/${p.totalQuestions}</div><div class="text-sm text-gray-500">${p.percentage}%</div></div></div>`).join('');
+                let questionsHtml = ''; questions.forEach((q, idx) => { let stats = insights.questionStats[q.id] || { correct: 0, incorrect: 0, total: 0 }; let correctPercent = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0; questionsHtml += `<div class="insight-card bg-white border rounded-xl p-4 hover:shadow transition"><div class="flex justify-between items-start mb-3 flex-wrap gap-2"><div class="font-bold text-green-800 bg-green-100 px-3 py-1 rounded-full text-sm">Question ${idx + 1}</div><div class="text-sm text-gray-500">${stats.total} attempts | ${stats.correct} correct | ${stats.incorrect} incorrect</div></div><p class="font-medium mb-3">${escapeHtml(q.text)}</p><div class="w-full bg-gray-200 rounded-full h-6 mb-2 overflow-hidden"><div class="bg-green-500 h-6 rounded-l-full flex items-center justify-end pr-2 text-xs text-white font-bold insight-bar" style="width: ${correctPercent}%">${correctPercent}%</div></div><div class="flex justify-between text-xs text-gray-500"><span>✅ Correct: ${stats.correct}</span><span>❌ Incorrect: ${stats.incorrect}</span></div><div class="mt-3 text-xs text-blue-600"><span class="font-semibold">Correct Answer:</span> ${escapeHtml(q.options[q.correct])}</div></div>`; });
+                document.getElementById('questionsInsights').innerHTML = questionsHtml;
+                document.getElementById('insightsResults').classList.remove('hidden');
+            }, 100);
+        }
+        
+        function exportInsightsToCSV() {
+            let grade = document.getElementById('insightGradeSelect').value;
+            let pkgKey = document.getElementById('insightPackageSelect').value;
+            let paperNum = document.getElementById('insightPaperSelect').value;
+            if (!pkgKey || !paperNum) { alert("Please select package and paper first"); return; }
+            let insights = getPaperInsights(parseInt(grade), pkgKey, parseInt(paperNum));
+            let questions = getQuestions(parseInt(grade), pkgKey, parseInt(paperNum));
+            let topPerformers = getTopPerformersForPaper(parseInt(grade), pkgKey, parseInt(paperNum));
+            let csvRows = []; csvRows.push(['=== PAPER INSIGHTS REPORT ===']); csvRows.push(['Generated:', new Date().toLocaleString()]); csvRows.push(['Grade:', grade]); csvRows.push(['Package:', pkgKey]); csvRows.push(['Paper:', paperNum]); csvRows.push([]); csvRows.push(['=== TOP PERFORMERS ===']); csvRows.push(['Rank', 'Username', 'Score', 'Total Questions', 'Percentage', 'Attempt Number']); topPerformers.forEach(p => { csvRows.push([p.rank, p.username, p.score, p.totalQuestions, p.percentage + '%', p.attemptNumber]); }); csvRows.push([]); csvRows.push(['=== QUESTION ANALYSIS ===']); csvRows.push(['Question #', 'Question Text', 'Correct Answer', 'Total Attempts', 'Correct Count', 'Incorrect Count', 'Accuracy %']); questions.forEach((q, idx) => { let stats = insights.questionStats[q.id] || { correct: 0, incorrect: 0, total: 0 }; let accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0; csvRows.push([idx + 1, q.text.replace(/,/g, ';'), q.options[q.correct].replace(/,/g, ';'), stats.total, stats.correct, stats.incorrect, accuracy + '%']); }); let correctTotal = 0, totalAttempts = 0; for (let qid in insights.questionStats) { correctTotal += insights.questionStats[qid].correct; totalAttempts += insights.questionStats[qid].total; } csvRows.push([]); csvRows.push(['SUMMARY', `Overall Accuracy: ${totalAttempts > 0 ? Math.round((correctTotal / totalAttempts) * 100) : 0}%`, `Total Students: ${insights.uniqueStudents}`, '', '', '', '']); let csvContent = csvRows.map(row => row.join(',')).join('\n'); let blob = new Blob([csvContent], { type: 'text/csv' }); let a = document.createElement('a'); let pkgDisplay = pkgKey.toString().startsWith('custom_') ? 'Custom' : `Package${pkgKey}`; a.download = `insights_grade${grade}_${pkgDisplay}_paper${paperNum}_${new Date().toISOString().split('T')[0]}.csv`; a.href = URL.createObjectURL(blob); a.click(); URL.revokeObjectURL(blob); alert("Insights exported to CSV!"); }
+        function exportTopPerformersOnly() { let grade = document.getElementById('insightGradeSelect').value; let pkgKey = document.getElementById('insightPackageSelect').value; let paperNum = document.getElementById('insightPaperSelect').value; if (!pkgKey || !paperNum) { alert("Please select package and paper first"); return; } let topPerformers = getTopPerformersForPaper(parseInt(grade), pkgKey, parseInt(paperNum)); if (topPerformers.length === 0) { alert("No performer data available"); return; } let csvRows = [['Rank', 'Username', 'Score', 'Total Questions', 'Percentage', 'Attempt Number', 'Date']]; topPerformers.forEach(p => { csvRows.push([p.rank, p.username, p.score, p.totalQuestions, p.percentage + '%', p.attemptNumber, new Date(p.timestamp).toLocaleString()]); }); let csvContent = csvRows.map(row => row.join(',')).join('\n'); let blob = new Blob([csvContent], { type: 'text/csv' }); let a = document.createElement('a'); let pkgDisplay = pkgKey.toString().startsWith('custom_') ? 'Custom' : `Package${pkgKey}`; a.download = `top_performers_grade${grade}_${pkgDisplay}_paper${paperNum}_${new Date().toISOString().split('T')[0]}.csv`; a.href = URL.createObjectURL(blob); a.click(); URL.revokeObjectURL(blob); alert("Top performers exported to CSV!"); }
+        
+        function updateInsightPaperDropdown() {
+            let grade = document.getElementById('insightGradeSelect').value;
+            let pkgKey = document.getElementById('insightPackageSelect').value;
+            let paperLimit = 0;
+            if (pkgKey.toString().startsWith('custom_')) { let customId = parseInt(pkgKey.replace('custom_', '')); let customPkg = getCustomPackages().find(p => p.id === customId); paperLimit = customPkg ? customPkg.paperCount : 0; }
+            else { paperLimit = PACKAGE_LIMITS[pkgKey] || 0; }
+            let paperSelect = document.getElementById('insightPaperSelect'); paperSelect.innerHTML = ''; for (let i = 1; i <= paperLimit; i++) paperSelect.innerHTML += `<option value="${i}">Paper ${i}</option>`;
+        }
+        function updateInsightPackageOptions() { let grade = document.getElementById('insightGradeSelect').value; let pkgSelect = document.getElementById('insightPackageSelect'); let customSelect = document.getElementById('insightCustomPackageSelect'); pkgSelect.innerHTML = '<option value="1">Package 1 (8 papers)</option><option value="2">Package 2 (20 papers)</option><option value="3">Package 3 (50 papers)</option><option value="4">Package 4 (50 papers)</option><option value="5">Package 5 (20 papers)</option><option value="6">🔓 Free Package (6)</option>'; let customPackages = getCustomPackages().filter(p => p.grade == grade); customSelect.innerHTML = ''; for (let cp of customPackages) { let option = document.createElement('option'); option.value = `custom_${cp.id}`; option.text = `✨ ${cp.name} (${cp.paperCount} papers)`; customSelect.appendChild(option); pkgSelect.appendChild(option.cloneNode(true)); } updateInsightPaperDropdown(); }
+        
+        // ==================== ADMIN FUNCTIONS ====================
+        function updateAssignStudentDropdown() { let students = getAllStudentsList(); let select = document.getElementById('assignStudentSelect'); select.innerHTML = '<option value="">-- Select Student --</option>'; for (let [username, data] of Object.entries(students)) select.innerHTML += `<option value="${username}|${data.grade}">${username} (Grade ${data.grade})</option>`; let customSelect = document.getElementById('customAssignStudent'); customSelect.innerHTML = '<option value="">-- Select Student --</option>'; for (let [username, data] of Object.entries(students)) customSelect.innerHTML += `<option value="${username}|${data.grade}">${username} (Grade ${data.grade})</option>`; }
+        function updateStudentAssignmentsList() { let assignments = JSON.parse(localStorage.getItem(STORAGE.ASSIGNMENTS) || '{}'); let container = document.getElementById('studentAssignmentsList'); if (Object.keys(assignments).length === 0) { container.innerHTML = '<div class="text-center py-8 text-gray-500">No packages assigned yet</div>'; return; } container.innerHTML = ''; for (let [username, grades] of Object.entries(assignments)) for (let [grade, pkgs] of Object.entries(grades)) { let pkgList = []; for (let key in pkgs) { if (key.startsWith('custom_')) { let customId = parseInt(key.replace('custom_', '')); let customPkg = getCustomPackages().find(p => p.id === customId); pkgList.push(customPkg ? `✨ ${customPkg.name}` : `Custom ${customId}`); } else pkgList.push(`Package ${key}`); } container.innerHTML += `<div class="bg-white rounded-lg p-3 border"><div class="flex justify-between items-center"><div><span class="font-bold">${username}</span> <span class="text-sm text-gray-500">(Grade ${grade})</span><div class="text-xs text-green-600 mt-1">Assigned: ${pkgList.join(', ')}</div></div></div></div>`; } }
+        function assignPackage() { let studentVal = document.getElementById('assignStudentSelect').value; if (!studentVal) { showAssignResult('error', 'Please select a student'); return; } let [username, grade] = studentVal.split('|'); let pkgValue = document.getElementById('assignPackageSelect').value; let assignments = JSON.parse(localStorage.getItem(STORAGE.ASSIGNMENTS) || '{}'); if (!assignments[username]) assignments[username] = {}; if (!assignments[username][grade]) assignments[username][grade] = {}; assignments[username][grade][pkgValue] = { assignedAt: new Date().toISOString(), assignedBy: 'admin' }; localStorage.setItem(STORAGE.ASSIGNMENTS, JSON.stringify(assignments)); showAssignResult('success', `✅ Package assigned to ${username} successfully!`); updateStudentAssignmentsList(); loadAdminData(); if (currentUser && currentUser.username === username && currentGrade == grade) showPackages(); }
+        function showAssignResult(type, message) { let resultDiv = document.getElementById('assignResult'); resultDiv.innerHTML = `<div class="${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} p-3 rounded">${message}</div>`; resultDiv.classList.remove('hidden'); setTimeout(() => resultDiv.classList.add('hidden'), 5000); }
+        
+        function refreshCustomPackagesList() {
+            let packages = getCustomPackages();
+            let container = document.getElementById('customPackagesList');
+            if (packages.length === 0) container.innerHTML = '<div class="text-center py-8 text-gray-500">No custom packages created yet.</div>';
+            else container.innerHTML = packages.map(p => `<div class="bg-white border rounded-lg p-4 flex justify-between items-center"><div><div class="font-bold text-lg">✨ ${p.name}</div><div class="text-sm text-gray-500">Grade ${p.grade} | ${p.paperCount} papers | LKR ${p.fee}</div><div class="text-xs text-gray-400">Created: ${new Date(p.createdAt).toLocaleDateString()}</div></div><button onclick="deleteCustomPackageHandler(${p.id})" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">🗑️ Delete</button></div>`).join('');
+            let customPkgSelect = document.getElementById('customAssignPackage'); customPkgSelect.innerHTML = '<option value="">-- Select Package --</option>'; packages.forEach(p => customPkgSelect.innerHTML += `<option value="${p.id}">${p.name} (Grade ${p.grade})</option>`);
+            let bulkCustomSelect = document.getElementById('bulkCustomPackageSelect'); bulkCustomSelect.innerHTML = ''; packages.forEach(p => bulkCustomSelect.innerHTML += `<option value="custom_${p.id}">✨ ${p.name} (Grade ${p.grade})</option>`);
+            let editCustomSelect = document.getElementById('editCustomPackageSelect'); editCustomSelect.innerHTML = ''; packages.forEach(p => editCustomSelect.innerHTML += `<option value="custom_${p.id}">✨ ${p.name} (Grade ${p.grade})</option>`);
+            let resetCustomSelect = document.getElementById('resetCustomPackageSelect'); let resetPackageCustomSelect = document.getElementById('resetPackageCustomSelect'); resetCustomSelect.innerHTML = ''; resetPackageCustomSelect.innerHTML = ''; packages.forEach(p => { resetCustomSelect.innerHTML += `<option value="custom_${p.id}">✨ ${p.name}</option>`; resetPackageCustomSelect.innerHTML += `<option value="custom_${p.id}">✨ ${p.name}</option>`; });
+            updateInsightPackageOptions();
+        }
+        
+        function createCustomPackageHandler() { let name = document.getElementById('customPkgName').value.trim(); let paperCount = document.getElementById('customPkgPapers').value; let fee = document.getElementById('customPkgFee').value; let grade = document.getElementById('customPkgGrade').value; if (!name) { alert("Please enter package name"); return; } if (!paperCount || paperCount < 1) { alert("Please enter valid number of papers (at least 1)"); return; } if (!fee || fee < 0) { alert("Please enter valid fee"); return; } createCustomPackage(name, paperCount, fee, grade); refreshCustomPackagesList(); document.getElementById('customPkgName').value = ''; document.getElementById('customPkgPapers').value = ''; document.getElementById('customPkgFee').value = ''; alert(`✅ Custom package "${name}" created!`); loadAdminData(); }
+        window.deleteCustomPackageHandler = function(pkgId) { if (confirm("Delete this custom package? This will remove all questions and assignments for this package.")) { deleteCustomPackage(pkgId); refreshCustomPackagesList(); loadAdminData(); alert("Package deleted!"); } };
+        function assignCustomPackageHandler() { let studentVal = document.getElementById('customAssignStudent').value; let pkgId = document.getElementById('customAssignPackage').value; if (!studentVal) { alert("Select a student"); return; } if (!pkgId) { alert("Select a custom package"); return; } let [username, grade] = studentVal.split('|'); let customPkg = getCustomPackages().find(p => p.id == pkgId); if (!customPkg) { alert("Package not found"); return; } if (customPkg.grade != grade) { alert(`This package is for Grade ${customPkg.grade}, but student is Grade ${grade}`); return; } assignCustomPackageToStudent(username, grade, pkgId); let resultDiv = document.getElementById('customAssignResult'); resultDiv.innerHTML = `<div class="bg-green-100 text-green-700 p-2 rounded">✅ Package assigned to ${username}!</div>`; resultDiv.classList.remove('hidden'); setTimeout(() => resultDiv.classList.add('hidden'), 3000); updateStudentAssignmentsList(); loadAdminData(); if (currentUser && currentUser.username === username && currentGrade == grade) showPackages(); }
+        
+        // Free Package Admin Functions
+        function updateFreePaperDropdown() {
+            let grade = document.getElementById('freeEditGradeSelect').value;
+            let paperLimit = PACKAGE_LIMITS[6];
+            let paperSelect = document.getElementById('freeEditPaperSelect');
+            paperSelect.innerHTML = '';
+            for (let i = 1; i <= paperLimit; i++) paperSelect.innerHTML += `<option value="${i}">Paper ${i}</option>`;
+            let bulkPaperSelect = document.getElementById('freeBulkPaperSelect');
+            bulkPaperSelect.innerHTML = '';
+            for (let i = 1; i <= paperLimit; i++) bulkPaperSelect.innerHTML += `<option value="${i}">Paper ${i}</option>`;
+        }
+        
+        function loadFreeQuestionsToEditor() {
+            let grade = parseInt(document.getElementById('freeEditGradeSelect').value);
+            let paper = parseInt(document.getElementById('freeEditPaperSelect').value);
+            let qs = getQuestions(grade, 6, paper);
+            let container = document.getElementById('freeQuestionsEditor');
+            if (!qs.length) { container.innerHTML = '<div class="text-center py-8 text-gray-500">No questions. Upload Excel or add new.</div>'; return; }
+            container.innerHTML = qs.map((q, idx) => `<div class="question-card"><div class="flex justify-between items-center mb-2"><strong class="text-green-800">Q${idx+1}</strong><div><button onclick="openFreeEditModal(${q.id}, ${grade}, 6, ${paper})" class="bg-blue-600 text-white px-3 py-1 rounded text-sm mr-2">✏️ Edit</button><button onclick="deleteFreeQuestion(${q.id}, ${grade}, 6, ${paper})" class="bg-red-600 text-white px-3 py-1 rounded text-sm mr-2">🗑️ Delete</button><button onclick="deleteFreeEntirePaperHandler(${grade}, 6, ${paper})" class="bg-orange-600 text-white px-3 py-1 rounded text-sm">🗑️ Delete Entire Paper</button></div></div><p class="font-medium">${escapeHtml(q.text)}</p>${q.qImage ? `<img src="${escapeHtml(q.qImage)}" class="max-h-32 my-2 rounded border" onerror="this.style.display='none'">` : ''}<div class="grid grid-cols-2 gap-2 text-sm mt-2"><div>A. ${escapeHtml(q.options[0])} ${q.optImages && q.optImages[0] ? `<img src="${escapeHtml(q.optImages[0])}" class="inline-block h-6 w-6 object-cover rounded ml-1">` : ''}</div><div>B. ${escapeHtml(q.options[1])} ${q.optImages && q.optImages[1] ? `<img src="${escapeHtml(q.optImages[1])}" class="inline-block h-6 w-6 object-cover rounded ml-1">` : ''}</div><div>C. ${escapeHtml(q.options[2])} ${q.optImages && q.optImages[2] ? `<img src="${escapeHtml(q.optImages[2])}" class="inline-block h-6 w-6 object-cover rounded ml-1">` : ''}</div><div>D. ${escapeHtml(q.options[3])} ${q.optImages && q.optImages[3] ? `<img src="${escapeHtml(q.optImages[3])}" class="inline-block h-6 w-6 object-cover rounded ml-1">` : ''}</div></div><div class="text-sm text-green-700 mt-1">✓ Correct: ${String.fromCharCode(65+q.correct)}</div></div>`).join('');
+        }
+        
+        function openFreeEditModal(qid, grade, pkgKey, paper) {
+            let qs = getQuestions(grade, pkgKey, paper);
+            let q = qs.find(qq => qq.id === qid);
+            if (!q) return;
+            currentEditQ = { ...q };
+            editGrade = grade;
+            editPkgKey = pkgKey;
+            editPaper = paper;
+            document.getElementById('editQText').value = q.text;
+            document.getElementById('editOptA').value = q.options[0];
+            document.getElementById('editOptB').value = q.options[1];
+            document.getElementById('editOptC').value = q.options[2];
+            document.getElementById('editOptD').value = q.options[3];
+            document.getElementById('editCorrectAns').value = q.correct;
+            document.getElementById('editQImage').value = q.qImage || "";
+            document.getElementById('editOptAImg').value = (q.optImages && q.optImages[0]) || "";
+            document.getElementById('editOptBImg').value = (q.optImages && q.optImages[1]) || "";
+            document.getElementById('editOptCImg').value = (q.optImages && q.optImages[2]) || "";
+            document.getElementById('editOptDImg').value = (q.optImages && q.optImages[3]) || "";
+            document.getElementById('editQuestionModal').classList.remove('hidden');
+        }
+        
+        function deleteFreeQuestion(qid, grade, pkgKey, paper) {
+            if (!confirm("Delete this question?")) return;
+            let qs = getQuestions(grade, pkgKey, paper);
+            qs = qs.filter(q => q.id !== qid);
+            saveQuestions(grade, pkgKey, paper, qs);
+            loadFreeQuestionsToEditor();
+            alert("Question deleted!");
+        }
+        
+        function deleteFreeEntirePaperHandler(grade, pkgKey, paper) {
+            if (confirm(`⚠️ WARNING: This will delete ALL questions in Paper ${paper} for Free Package. This action cannot be undone! Continue?`)) {
+                if (deleteEntirePaper(grade, pkgKey, paper)) {
+                    alert(`✅ Paper ${paper} has been deleted.`);
+                    loadFreeQuestionsToEditor();
+                    loadAdminData();
+                } else {
+                    alert("Failed to delete paper.");
+                }
+            }
+        }
+        
+        function loadActiveSessions() {
+            let sessions = getAllActiveSessions();
+            let container = document.getElementById('activeSessionsList');
+            if (Object.keys(sessions).length === 0) { container.innerHTML = '<div class="text-center py-8 text-gray-500">No active sessions currently.</div>'; return; }
+            let students = getAllStudentsList();
+            container.innerHTML = '';
+            for (let [username, session] of Object.entries(sessions)) {
+                if (username === 'free_user') continue;
+                let studentInfo = students[username] || {};
+                let loginTime = new Date(session.loginTime).toLocaleString();
+                let lastActive = new Date(session.lastActive).toLocaleString();
+                container.innerHTML += `<div class="bg-white border rounded-lg p-4 flex justify-between items-center flex-wrap gap-3"><div><div class="font-bold text-lg">${username}</div><div class="text-sm text-gray-500">Grade ${studentInfo.grade || session.grade}</div><div class="text-xs text-gray-400 mt-1">Login: ${loginTime}</div><div class="text-xs text-gray-400">Last Active: ${lastActive}</div><div class="text-xs text-gray-400">Device: ${session.deviceInfo?.deviceType} / ${session.deviceInfo?.browser}</div></div><button onclick="forceLogoutUserAdmin('${username}')" class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600">🔒 Force Logout</button></div>`;
+            }
+        }
+        
+        window.forceLogoutUserAdmin = function(username) { if (confirm(`Force logout ${username}? This will terminate their current session.`)) { forceLogoutUser(username); loadActiveSessions(); alert(`✅ ${username} has been logged out.`); } };
+        
+        function loadAdminData() {
+            let students = getAllStudentsList();
+            document.getElementById('statStudents').innerText = Object.keys(students).length;
+            document.getElementById('statActivePkgs').innerText = getActivePackagesCount();
+            document.getElementById('statCompletedPapers').innerText = getAllCompletedPapers().length;
+            let pending = 0; let payments = JSON.parse(localStorage.getItem(STORAGE.PAYMENTS) || '{}');
+            for (let u in payments) for (let g in payments[u]) for (let p in payments[u][g]) if (payments[u][g][p].status === 'pending') pending++;
+            document.getElementById('statPendingPay').innerText = pending;
+            let totalLogins = 0; for (let u in students) totalLogins += students[u].loginCount || 0;
+            document.getElementById('statTotalLogins').innerText = totalLogins;
+            document.getElementById('statResetReqs').innerText = getResetRequests().filter(r => r.status === 'pending').length;
+            document.getElementById('statTotalPapers').innerText = getAllPapersCount();
+            let recent = getActivities(20);
+            document.getElementById('recentActivityList').innerHTML = recent.map(a => `<div class="p-3 bg-gray-50 rounded-lg"><div class="flex justify-between"><span class="font-bold">${a.username}</span><span class="text-xs">${new Date(a.timestamp).toLocaleString()}</span></div><div class="text-sm">${a.details}</div></div>`).join('') || '<p class="text-center">No activity</p>';
+            let topStudents = getTopStudents();
+            document.getElementById('topStudentsList').innerHTML = topStudents.map((s, i) => `<div class="flex justify-between p-2 bg-gray-50 rounded"><span>#${i+1} ${s.name}</span><span class="font-bold">${s.attempts} attempts</span></div>`).join('') || '<p class="text-center">No data</p>';
+            document.getElementById('adminActivityPanel').innerHTML = getActivities(200).map(a => `<div class="p-3 bg-white border rounded"><div class="flex justify-between"><span class="font-bold">${a.username}</span><span class="text-xs">${new Date(a.timestamp).toLocaleString()}</span></div><div class="text-sm">${a.details}</div></div>`).join('');
+            document.getElementById('adminStudentsPanel').innerHTML = Object.entries(students).map(([u, d]) => `<div class="admin-card bg-white border rounded-lg p-4"><div class="flex justify-between"><div><span class="font-bold text-lg">${u}</span> <span class="text-sm bg-green-100 text-green-700 px-2 py-0.5 rounded">Grade ${d.grade}</span><div class="text-xs text-gray-400 mt-1">Joined: ${new Date(d.createdAt).toLocaleDateString()}</div></div><div class="text-right"><div>🔑 Logins: ${d.loginCount || 0}</div></div></div></div>`).join('');
+            let resets = getResetRequests();
+            document.getElementById('resetRequestsContainer').innerHTML = resets.map(r => `<div class="admin-card ${r.status === 'pending' ? 'bg-yellow-50' : 'bg-green-50'} border rounded-xl p-4"><div class="flex justify-between"><div><span class="font-bold">${r.username}</span><div class="text-xs">Requested: ${new Date(r.requestedAt).toLocaleString()}</div>${r.status === 'approved' ? `<div class="text-green-600 text-sm">New Password: ${r.newPassword}</div>` : ''}</div>${r.status === 'pending' ? `<div class="flex gap-2"><button onclick="approveResetReq('${r.id}', '${r.username}')" class="bg-green-600 text-white px-3 py-1 rounded text-sm">Approve</button><button onclick="rejectResetReq('${r.id}')" class="bg-red-600 text-white px-3 py-1 rounded text-sm">Reject</button></div>` : `<span class="text-sm px-2 py-1 rounded ${r.status === 'approved' ? 'bg-green-200' : 'bg-red-200'}">${r.status.toUpperCase()}</span>`}</div></div>`).join('');
+            let pendingList = []; for (let u in payments) for (let g in payments[u]) for (let p in payments[u][g]) if (payments[u][g][p].status === 'pending') pendingList.push({ username: u, grade: g, packageNum: p, ...payments[u][g][p] });
+            document.getElementById('adminPaymentsPanel').innerHTML = pendingList.map(p => `<div class="admin-card bg-yellow-50 border rounded-xl p-4"><div class="flex justify-between"><div><span class="font-bold">${p.username}</span> - Grade ${p.grade} - Pkg ${p.packageNum}<br>LKR ${p.amount}<br>Ref: ${p.transactionRef}</div><div class="flex gap-2">${p.slipData ? `<button onclick="viewSlip('${p.slipData}')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">📄 View Slip</button>` : ''}<button onclick="approvePaymentAndRefresh('${p.username}',${p.grade},${p.packageNum})" class="bg-green-600 text-white px-3 py-1 rounded text-sm">Approve</button></div></div></div>`).join('') || '<p class="text-center">No pending payments</p>';
+            let completed = getAllCompletedPapers();
+            document.getElementById('adminCompletedPanel').innerHTML = completed.map(c => `<div class="admin-card bg-blue-50 border rounded-lg p-3"><div><span class="font-bold">${c.username}</span> - Grade ${c.grade} - Package ${c.packageKey} - Paper ${c.paperNum}<div class="text-xs text-green-600">Completed</div></div></div>`).join('') || '<p class="text-center">No completed papers</p>';
+            document.getElementById('packageFeesList').innerHTML = Object.entries(PACKAGE_FEES).map(([pkg, fee]) => `<div class="flex justify-between p-2 bg-gray-50 rounded"><span>Package ${pkg} (${PACKAGE_LIMITS[pkg]} papers) - ${pkg == 6 ? 'FREE' : `LKR ${fee}`}</span><button onclick="editPackageFee(${pkg})" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">Edit</button></div>`).join('');
+            updateStudentDropdowns();
+            loadAccountRecordsTable();
+            updateStudentAssignmentsList();
+            refreshCustomPackagesList();
+            loadActiveSessions();
+        }
+        
+        function approvePaymentAndRefresh(username, grade, pkgNum) { if (confirm(`Approve payment for ${username}?`)) { approvePayment(username, parseInt(grade), parseInt(pkgNum)); loadAdminData(); if (currentUser && currentUser.username === username) showPackages(); alert(`✅ Package ${pkgNum} activated!`); } }
+        function approveResetReq(reqId, username) { let newPw = prompt(`New password for ${username}:`, "password123"); if (newPw && newPw.length >= 4 && confirm(`Set to "${newPw}"?`)) { if (approveReset(reqId, newPw)) alert(`✅ Password reset! New password: ${newPw}`); loadAdminData(); } }
+        function rejectResetReq(reqId) { if (confirm("Reject?")) { rejectReset(reqId); loadAdminData(); alert("Rejected"); } }
+        window.viewSlip = function(data) { document.getElementById('slipImage').src = data; document.getElementById('slipViewModal').classList.remove('hidden'); };
+        
+        function updatePaperDropdowns() {
+            let pkg = document.getElementById('bulkPackageSelect').value;
+            let limit = 0;
+            if (pkg.toString().startsWith('custom_')) { let customId = parseInt(pkg.replace('custom_', '')); let customPkg = getCustomPackages().find(p => p.id === customId); limit = customPkg ? customPkg.paperCount : 0; }
+            else limit = PACKAGE_LIMITS[pkg] || 0;
+            let bulkSelect = document.getElementById('bulkPaperSelect'); bulkSelect.innerHTML = ''; for (let i = 1; i <= limit; i++) bulkSelect.innerHTML += `<option value="${i}">Paper ${i}</option>`;
+            let editPkg = document.getElementById('editPackageSelect').value; let editLimit = 0;
+            if (editPkg.toString().startsWith('custom_')) { let customId = parseInt(editPkg.replace('custom_', '')); let customPkg = getCustomPackages().find(p => p.id === customId); editLimit = customPkg ? customPkg.paperCount : 0; }
+            else editLimit = PACKAGE_LIMITS[editPkg] || 0;
+            let editSelect = document.getElementById('editPaperSelect'); editSelect.innerHTML = ''; for (let i = 1; i <= editLimit; i++) editSelect.innerHTML += `<option value="${i}">Paper ${i}</option>`;
+            let resetPkg = document.getElementById('resetPackageSelect').value; let resetLimit = 0;
+            if (resetPkg.toString().startsWith('custom_')) { let customId = parseInt(resetPkg.replace('custom_', '')); let customPkg = getCustomPackages().find(p => p.id === customId); resetLimit = customPkg ? customPkg.paperCount : 0; }
+            else resetLimit = PACKAGE_LIMITS[resetPkg] || 0;
+            let resetSelect = document.getElementById('resetPaperSelect'); resetSelect.innerHTML = ''; for (let i = 1; i <= resetLimit; i++) resetSelect.innerHTML += `<option value="${i}">Paper ${i}</option>`;
+            updateInsightPaperDropdown();
+        }
+        
+        function loadQuestionsToEditor() { let grade = parseInt(document.getElementById('editGradeSelect').value); let pkgKey = document.getElementById('editPackageSelect').value; let paper = parseInt(document.getElementById('editPaperSelect').value); let qs = getQuestions(grade, pkgKey, paper); let container = document.getElementById('questionsEditor'); if (!qs.length) { container.innerHTML = '<div class="text-center py-8 text-gray-500">No questions. Upload Excel or add new.</div>'; return; } container.innerHTML = qs.map((q, idx) => `<div class="question-card"><div class="flex justify-between items-center mb-2"><strong class="text-green-800">Q${idx+1}</strong><div><button onclick="openEditModal(${q.id}, ${grade}, '${pkgKey}', ${paper})" class="bg-blue-600 text-white px-3 py-1 rounded text-sm mr-2">✏️ Edit</button><button onclick="deleteQuestion(${q.id}, ${grade}, '${pkgKey}', ${paper})" class="bg-red-600 text-white px-3 py-1 rounded text-sm mr-2">🗑️ Delete</button><button onclick="deleteEntirePaperHandler(${grade}, '${pkgKey}', ${paper})" class="bg-orange-600 text-white px-3 py-1 rounded text-sm">🗑️ Delete Entire Paper</button></div></div><p class="font-medium">${escapeHtml(q.text)}</p>${q.qImage ? `<img src="${escapeHtml(q.qImage)}" class="max-h-32 my-2 rounded border" onerror="this.style.display='none'">` : ''}<div class="grid grid-cols-2 gap-2 text-sm mt-2"><div>A. ${escapeHtml(q.options[0])} ${q.optImages && q.optImages[0] ? `<img src="${escapeHtml(q.optImages[0])}" class="inline-block h-6 w-6 object-cover rounded ml-1">` : ''}</div><div>B. ${escapeHtml(q.options[1])} ${q.optImages && q.optImages[1] ? `<img src="${escapeHtml(q.optImages[1])}" class="inline-block h-6 w-6 object-cover rounded ml-1">` : ''}</div><div>C. ${escapeHtml(q.options[2])} ${q.optImages && q.optImages[2] ? `<img src="${escapeHtml(q.optImages[2])}" class="inline-block h-6 w-6 object-cover rounded ml-1">` : ''}</div><div>D. ${escapeHtml(q.options[3])} ${q.optImages && q.optImages[3] ? `<img src="${escapeHtml(q.optImages[3])}" class="inline-block h-6 w-6 object-cover rounded ml-1">` : ''}</div></div><div class="text-sm text-green-700 mt-1">✓ Correct: ${String.fromCharCode(65+q.correct)}</div></div>`).join(''); }
+        function escapeHtml(str) { return str ? str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])) : ''; }
+        function openEditModal(qid, grade, pkgKey, paper) { let qs = getQuestions(grade, pkgKey, paper); let q = qs.find(qq => qq.id === qid); if (!q) return; currentEditQ = { ...q }; editGrade = grade; editPkgKey = pkgKey; editPaper = paper; document.getElementById('editQText').value = q.text; document.getElementById('editOptA').value = q.options[0]; document.getElementById('editOptB').value = q.options[1]; document.getElementById('editOptC').value = q.options[2]; document.getElementById('editOptD').value = q.options[3]; document.getElementById('editCorrectAns').value = q.correct; document.getElementById('editQImage').value = q.qImage || ""; document.getElementById('editOptAImg').value = (q.optImages && q.optImages[0]) || ""; document.getElementById('editOptBImg').value = (q.optImages && q.optImages[1]) || ""; document.getElementById('editOptCImg').value = (q.optImages && q.optImages[2]) || ""; document.getElementById('editOptDImg').value = (q.optImages && q.optImages[3]) || ""; document.getElementById('editQuestionModal').classList.remove('hidden'); }
+        function saveEditedQuestion() { if (!currentEditQ) return; let updated = { ...currentEditQ, text: document.getElementById('editQText').value, options: [document.getElementById('editOptA').value, document.getElementById('editOptB').value, document.getElementById('editOptC').value, document.getElementById('editOptD').value], correct: parseInt(document.getElementById('editCorrectAns').value), qImage: document.getElementById('editQImage').value, optImages: [document.getElementById('editOptAImg').value, document.getElementById('editOptBImg').value, document.getElementById('editOptCImg').value, document.getElementById('editOptDImg').value] }; let qs = getQuestions(editGrade, editPkgKey, editPaper); let idx = qs.findIndex(q => q.id === currentEditQ.id); if (idx !== -1) qs[idx] = updated; saveQuestions(editGrade, editPkgKey, editPaper, qs); if (editPkgKey == 6) loadFreeQuestionsToEditor(); else loadQuestionsToEditor(); document.getElementById('editQuestionModal').classList.add('hidden'); currentEditQ = null; alert("✅ Question updated!"); }
+        function deleteQuestion(qid, grade, pkgKey, paper) { if (!confirm("Delete this question?")) return; let qs = getQuestions(grade, pkgKey, paper); qs = qs.filter(q => q.id !== qid); saveQuestions(grade, pkgKey, paper, qs); if (pkgKey == 6) loadFreeQuestionsToEditor(); else loadQuestionsToEditor(); alert("Question deleted!"); }
+        function deleteEntirePaperHandler(grade, pkgKey, paper) { if (confirm(`⚠️ WARNING: This will delete ALL questions in Paper ${paper} for Grade ${grade} Package ${pkgKey}. This action cannot be undone! Continue?`)) { if (deleteEntirePaper(grade, pkgKey, paper)) { alert(`✅ Paper ${paper} has been deleted.`); if (pkgKey == 6) loadFreeQuestionsToEditor(); else loadQuestionsToEditor(); loadAdminData(); } else { alert("Failed to delete paper."); } } }
+        function addNewQuestion() { let grade = parseInt(document.getElementById('editGradeSelect').value); let pkgKey = document.getElementById('editPackageSelect').value; let paper = parseInt(document.getElementById('editPaperSelect').value); let qs = getQuestions(grade, pkgKey, paper); qs.push({ id: Date.now(), text: "New question - Click Edit", options: ["Option A", "Option B", "Option C", "Option D"], correct: 0, qImage: "", optImages: ["","","",""] }); saveQuestions(grade, pkgKey, paper, qs); if (pkgKey == 6) loadFreeQuestionsToEditor(); else loadQuestionsToEditor(); alert("New question added!"); }
+        
+        function updateStudentDropdowns() { let students = getAllStudentsList(); let studentSelect = document.getElementById('resetStudentSelect'); let packageStudentSelect = document.getElementById('resetPackageStudentSelect'); studentSelect.innerHTML = '<option value="">-- Select Student --</option>'; packageStudentSelect.innerHTML = '<option value="">-- Select Student --</option>'; for (let [username, data] of Object.entries(students)) { studentSelect.innerHTML += `<option value="${username}|${data.grade}">${username} (Grade ${data.grade})</option>`; packageStudentSelect.innerHTML += `<option value="${username}|${data.grade}">${username} (Grade ${data.grade})</option>`; } updateAssignStudentDropdown(); }
+        function resetPaperAdmin() { let studentVal = document.getElementById('resetStudentSelect').value; if (!studentVal) { alert("Select a student"); return; } let [username, grade] = studentVal.split('|'); let pkgKey = document.getElementById('resetPackageSelect').value; let paperNum = parseInt(document.getElementById('resetPaperSelect').value); if (resetPaperAttemptsAdmin(username, parseInt(grade), pkgKey, paperNum)) { alert(`✅ Paper ${paperNum} reset for ${username}!`); loadAdminData(); } else alert(`No attempts found for this paper.`); }
+        function resetPackageAdmin() { let studentVal = document.getElementById('resetPackageStudentSelect').value; if (!studentVal) { alert("Select a student"); return; } let [username, grade] = studentVal.split('|'); let pkgKey = document.getElementById('resetPackagePkgSelect').value; if (resetPackageAttemptsAdmin(username, parseInt(grade), pkgKey)) { alert(`✅ Package reset for ${username}!`); loadAdminData(); } else alert(`No attempts found for this package.`); }
+        function loadAccountRecordsTable() { let students = getAllStudentsList(); let tbody = document.getElementById('accountRecordsTable'); if (Object.keys(students).length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">No accounts created yet</td></tr>'; return; } let index = 1; tbody.innerHTML = ''; for (let [username, data] of Object.entries(students)) { let row = document.createElement('tr'); row.className = 'border-b hover:bg-green-50'; row.innerHTML = `<td class="px-4 py-3">${index++}</td><td class="px-4 py-3 font-medium">${username}</td><td class="px-4 py-3"><span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Grade ${data.grade}</span></td><td class="px-4 py-3">admin</td><td class="px-4 py-3 text-sm">${new Date(data.createdAt).toLocaleString()}</td><td class="px-4 py-3 text-sm">${data.lastLogin ? new Date(data.lastLogin).toLocaleString() : 'Never'}</td><td class="px-4 py-3 text-center"><span class="font-bold text-blue-600">${data.loginCount || 0}</span></td>`; tbody.appendChild(row); } }
+        function createStudentAccount() { let username = document.getElementById('newUsername').value.trim(); let password = document.getElementById('newPassword').value.trim(); let gradeRadio = document.querySelector('input[name="newGrade"]:checked'); let grade = gradeRadio ? gradeRadio.value : null; let resultDiv = document.getElementById('createAccountResult'); if (!username) { resultDiv.innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded">❌ Please enter a username</div>'; resultDiv.classList.remove('hidden'); return; } if (!password) { resultDiv.innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded">❌ Please enter a password</div>'; resultDiv.classList.remove('hidden'); return; } if (!grade) { resultDiv.innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded">❌ Please select a grade</div>'; resultDiv.classList.remove('hidden'); return; } let result = createAccount(username, password, parseInt(grade)); if (result.success) { resultDiv.innerHTML = `<div class="bg-green-100 text-green-700 p-3 rounded">✅ Account created successfully!<br>Username: ${username}<br>Password: ${password}<br>Grade: ${grade}</div>`; document.getElementById('newUsername').value = ''; document.getElementById('newPassword').value = ''; document.querySelectorAll('input[name="newGrade"]').forEach(r => r.checked = false); loadAdminData(); updateAssignStudentDropdown(); loadAccountRecordsTable(); setTimeout(() => resultDiv.classList.add('hidden'), 5000); } else { resultDiv.innerHTML = `<div class="bg-red-100 text-red-700 p-3 rounded">❌ ${result.error}</div>`; } resultDiv.classList.remove('hidden'); }
+        
+        function switchAdminTab(tab) {
+            document.getElementById('adminDashboardPanel').classList.add('hidden');
+            document.getElementById('adminActivityPanel').classList.add('hidden');
+            document.getElementById('adminStudentsPanel').classList.add('hidden');
+            document.getElementById('adminCreateAccountPanel').classList.add('hidden');
+            document.getElementById('adminAssignPackagePanel').classList.add('hidden');
+            document.getElementById('adminCustomPackagesPanel').classList.add('hidden');
+            document.getElementById('adminFreePackagePanel').classList.add('hidden');
+            document.getElementById('adminInsightsPanel').classList.add('hidden');
+            document.getElementById('adminSessionsPanel').classList.add('hidden');
+            document.getElementById('adminAccountRecordsPanel').classList.add('hidden');
+            document.getElementById('adminResetPanel').classList.add('hidden');
+            document.getElementById('adminPaymentsPanel').classList.add('hidden');
+            document.getElementById('adminCompletedPanel').classList.add('hidden');
+            document.getElementById('adminManagePapersPanel').classList.add('hidden');
+            document.getElementById('adminResetPapersPanel').classList.add('hidden');
+            document.getElementById('adminSettingsPanel').classList.add('hidden');
+            let btns = ['Dashboard', 'Activity', 'Students', 'CreateAccount', 'AssignPackage', 'CustomPackages', 'FreePackage', 'Insights', 'Sessions', 'AccountRecords', 'Reset', 'Payments', 'Completed', 'ManagePapers', 'ResetPapers', 'Settings'];
+            btns.forEach(b => { let btn = document.getElementById(`adminTab${b}`); if (btn) { btn.classList.remove('bg-green-100', 'text-green-800'); btn.classList.add('bg-gray-100', 'text-gray-600'); } });
+            document.getElementById(`adminTab${tab}`).classList.remove('bg-gray-100', 'text-gray-600');
+            document.getElementById(`adminTab${tab}`).classList.add('bg-green-100', 'text-green-800');
+            if (tab === 'Dashboard') document.getElementById('adminDashboardPanel').classList.remove('hidden');
+            else if (tab === 'Activity') document.getElementById('adminActivityPanel').classList.remove('hidden');
+            else if (tab === 'Students') document.getElementById('adminStudentsPanel').classList.remove('hidden');
+            else if (tab === 'CreateAccount') document.getElementById('adminCreateAccountPanel').classList.remove('hidden');
+            else if (tab === 'AssignPackage') { document.getElementById('adminAssignPackagePanel').classList.remove('hidden'); updateAssignStudentDropdown(); updateStudentAssignmentsList(); }
+            else if (tab === 'CustomPackages') { document.getElementById('adminCustomPackagesPanel').classList.remove('hidden'); refreshCustomPackagesList(); updateAssignStudentDropdown(); }
+            else if (tab === 'FreePackage') { document.getElementById('adminFreePackagePanel').classList.remove('hidden'); updateFreePaperDropdown(); loadFreeQuestionsToEditor(); }
+            else if (tab === 'Insights') { document.getElementById('adminInsightsPanel').classList.remove('hidden'); updateInsightPackageOptions(); }
+            else if (tab === 'Sessions') { document.getElementById('adminSessionsPanel').classList.remove('hidden'); loadActiveSessions(); }
+            else if (tab === 'AccountRecords') { document.getElementById('adminAccountRecordsPanel').classList.remove('hidden'); loadAccountRecordsTable(); }
+            else if (tab === 'Reset') document.getElementById('adminResetPanel').classList.remove('hidden');
+            else if (tab === 'Payments') document.getElementById('adminPaymentsPanel').classList.remove('hidden');
+            else if (tab === 'Completed') document.getElementById('adminCompletedPanel').classList.remove('hidden');
+            else if (tab === 'ManagePapers') { document.getElementById('adminManagePapersPanel').classList.remove('hidden'); updatePaperDropdowns(); loadQuestionsToEditor(); }
+            else if (tab === 'ResetPapers') { document.getElementById('adminResetPapersPanel').classList.remove('hidden'); updateStudentDropdowns(); updatePaperDropdowns(); }
+            else if (tab === 'Settings') document.getElementById('adminSettingsPanel').classList.remove('hidden');
+            loadAdminData();
+        }
+        
+        // ==================== EVENT LISTENERS ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            initQuestions();
+            
+            document.getElementById('sessionExpiredOkBtn').onclick = () => { location.reload(); };
+            
+            document.getElementById('navHome').onclick = () => currentUser && showPackages();
+            document.getElementById('navPackages').onclick = () => currentUser && showPackages();
+            document.getElementById('navProfile').onclick = () => {
+                if (!currentUser || currentUser.username === 'free_user') { alert("Profile not available in Free Mode. Please login to access profile."); return; }
+                document.querySelectorAll('#packagesPage, #papersPage, #quizPage, #resultsPage, #progressPage, #loginPage').forEach(el => el.classList.add('hidden'));
+                document.getElementById('profilePage').classList.remove('hidden');
+                document.getElementById('profileUsername').innerText = currentUser.username;
+                document.getElementById('profileGrade').innerText = currentGrade;
+                document.getElementById('profileCreated').innerText = currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : 'N/A';
+                document.getElementById('profileLastLogin').innerText = currentUser.lastLogin ? new Date(currentUser.lastLogin).toLocaleString() : 'First login';
+                document.getElementById('profileLoginCount').innerText = currentUser.loginCount || 1;
+                let totalCompleted = 0;
+                let allPackages = getAllUserPackages(currentUser.username, currentGrade);
+                for (let pkg of allPackages) for (let paper = 1; paper <= pkg.paperCount; paper++) if (getAttempts(currentUser.username, currentGrade, pkg.key, paper) >= MAX_ATTEMPTS) totalCompleted++;
+                document.getElementById('profileTotalCompleted').innerText = totalCompleted;
+            };
+            document.getElementById('navProgress').onclick = () => { if (!currentUser) return; document.querySelectorAll('#packagesPage, #papersPage, #quizPage, #resultsPage, #profilePage, #loginPage').forEach(el => el.classList.add('hidden')); document.getElementById('progressPage').classList.remove('hidden'); loadProgressPage(); };
+            document.getElementById('navLogout').onclick = () => { if (confirm("Logout?")) { if (currentUser && currentUser.username !== 'free_user') removeSession(currentUser.username); location.reload(); } };
+            
+            let selectedLoginGrade = null;
+            document.getElementById('loginGrade10').onclick = () => { selectedLoginGrade = 10; document.getElementById('loginGrade10').classList.add('selected'); document.getElementById('loginGrade11').classList.remove('selected'); document.getElementById('selectedLoginGrade').value = "10"; document.getElementById('loginSubmitBtn').disabled = false; document.getElementById('loginSubmitBtn').className = "w-full bg-green-700 text-white font-bold py-3 rounded-xl"; };
+            document.getElementById('loginGrade11').onclick = () => { selectedLoginGrade = 11; document.getElementById('loginGrade11').classList.add('selected'); document.getElementById('loginGrade10').classList.remove('selected'); document.getElementById('selectedLoginGrade').value = "11"; document.getElementById('loginSubmitBtn').disabled = false; document.getElementById('loginSubmitBtn').className = "w-full bg-green-700 text-white font-bold py-3 rounded-xl"; };
+            document.getElementById('loginSubmitBtn').onclick = () => { 
+                let result = login(document.getElementById('loginUsername').value.trim(), document.getElementById('loginPassword').value, selectedLoginGrade); 
+                if (result.success) { 
+                    currentUser = result.user; 
+                    currentGrade = selectedLoginGrade; 
+                    isFreeMode = false;
+                    document.getElementById('mainNav').classList.remove('hidden'); 
+                    showPackages();
+                    startSessionValidation();
+                    if (result.wasConflict) alert("⚠️ You were logged in from another device. That session has been terminated.");
+                } else alert(result.error); 
+            };
+            
+            document.getElementById('freeAccessBtn').onclick = () => {
+                let grade = prompt("Select Grade (10 or 11):", "10");
+                if (grade && (grade == '10' || grade == '11')) {
+                    startFreeAccess(parseInt(grade));
+                } else {
+                    alert("Please enter valid grade (10 or 11)");
+                }
+            };
+            
+            document.getElementById('profileBackBtn').onclick = () => showPackages();
+            document.getElementById('progressBackBtn').onclick = () => showPackages();
+            document.getElementById('refreshProgressBtn').onclick = () => { loadProgressPage(); alert("Progress refreshed!"); };
+            document.getElementById('papersBackBtn').onclick = () => showPackages();
+            document.getElementById('resultsBackBtn').onclick = () => { document.getElementById('resultsPage').classList.add('hidden'); showPapers(); };
+            document.getElementById('nextQuestionBtn').onclick = nextQuestion;
+            document.getElementById('prevQuestionBtn').onclick = prevQuestion;
+            document.getElementById('quizExitBtn').onclick = () => { if (confirm("Exit?")) { if (timer) clearInterval(timer); quizActive = false; document.getElementById('quizPage').classList.add('hidden'); showPapers(); } };
+            document.getElementById('downloadAnswersBtn').onclick = downloadAnswers;
+            document.getElementById('downloadReportBtn').onclick = downloadPDF;
+            document.getElementById('confirmPaymentBtn').onclick = handlePaymentSubmit;
+            document.getElementById('closePaymentModal').onclick = () => document.getElementById('paymentModal').classList.add('hidden');
+            document.getElementById('closeWaitingModal').onclick = () => document.getElementById('waitingModal').classList.add('hidden');
+            document.getElementById('closeResultBtn').onclick = () => document.getElementById('resultModal').classList.add('hidden');
+            document.getElementById('closeSlipModal').onclick = () => document.getElementById('slipViewModal').classList.add('hidden');
+            
+            let forgotGrade = null;
+            document.getElementById('forgotGrade10Btn').onclick = () => { forgotGrade = 10; document.getElementById('forgotGrade10Btn').classList.add('selected'); document.getElementById('forgotGrade11Btn').classList.remove('selected'); };
+            document.getElementById('forgotGrade11Btn').onclick = () => { forgotGrade = 11; document.getElementById('forgotGrade11Btn').classList.add('selected'); document.getElementById('forgotGrade10Btn').classList.remove('selected'); };
+            document.getElementById('searchUsernameBtn').onclick = () => { if (!forgotGrade) { alert("Select grade"); return; } let users = getUsernamesByGrade(forgotGrade); document.getElementById('usernameList').innerHTML = users.length ? users.map(u => `<div class="bg-white rounded p-2 border">📝 ${u}</div>`).join('') : '<p class="text-red-600">No usernames</p>'; document.getElementById('usernameResult').classList.remove('hidden'); };
+            document.getElementById('closeForgotUsernameModal').onclick = () => document.getElementById('forgotUsernameModal').classList.add('hidden');
+            document.getElementById('forgotUsernameBtn').onclick = () => document.getElementById('forgotUsernameModal').classList.remove('hidden');
+            document.getElementById('forgotPasswordBtn').onclick = () => document.getElementById('resetRequestModal').classList.remove('hidden');
+            document.getElementById('closeResetModal').onclick = () => document.getElementById('resetRequestModal').classList.add('hidden');
+            document.getElementById('resetRequestForm').onsubmit = (e) => { e.preventDefault(); let result = requestPasswordReset(document.getElementById('resetUsername').value.trim()); alert(result.success ? "✅ Request submitted!" : result.error); if (result.success) document.getElementById('resetRequestModal').classList.add('hidden'); };
+            
+            let adminLogged = false;
+            document.getElementById('adminPortalBtn').onclick = () => document.getElementById('adminModal').classList.remove('hidden');
+            document.getElementById('closeAdminModalBtn').onclick = () => { document.getElementById('adminModal').classList.add('hidden'); document.getElementById('adminPanelContent').classList.add('hidden'); document.getElementById('adminPasswordInput').value = ''; adminLogged = false; document.getElementById('adminLoginBtn').innerHTML = 'Login'; };
+            document.getElementById('adminLoginBtn').onclick = () => {
+                if (!adminLogged && document.getElementById('adminPasswordInput').value === 'Admin2025') { adminLogged = true; document.getElementById('adminPanelContent').classList.remove('hidden'); document.getElementById('adminLoginBtn').innerHTML = 'Logout'; loadAdminData(); switchAdminTab('Dashboard'); }
+                else if (adminLogged) { adminLogged = false; document.getElementById('adminPanelContent').classList.add('hidden'); document.getElementById('adminLoginBtn').innerHTML = 'Login'; document.getElementById('adminPasswordInput').value = ''; }
+                else alert("Wrong password");
+            };
+            
+            document.getElementById('adminTabDashboard').onclick = () => switchAdminTab('Dashboard');
+            document.getElementById('adminTabActivity').onclick = () => switchAdminTab('Activity');
+            document.getElementById('adminTabStudents').onclick = () => switchAdminTab('Students');
+            document.getElementById('adminTabCreateAccount').onclick = () => switchAdminTab('CreateAccount');
+            document.getElementById('adminTabAssignPackage').onclick = () => switchAdminTab('AssignPackage');
+            document.getElementById('adminTabCustomPackages').onclick = () => switchAdminTab('CustomPackages');
+            document.getElementById('adminTabFreePackage').onclick = () => switchAdminTab('FreePackage');
+            document.getElementById('adminTabInsights').onclick = () => switchAdminTab('Insights');
+            document.getElementById('adminTabSessions').onclick = () => switchAdminTab('Sessions');
+            document.getElementById('adminTabAccountRecords').onclick = () => switchAdminTab('AccountRecords');
+            document.getElementById('adminTabReset').onclick = () => switchAdminTab('Reset');
+            document.getElementById('adminTabPayments').onclick = () => switchAdminTab('Payments');
+            document.getElementById('adminTabCompleted').onclick = () => switchAdminTab('Completed');
+            document.getElementById('adminTabManagePapers').onclick = () => switchAdminTab('ManagePapers');
+            document.getElementById('adminTabResetPapers').onclick = () => switchAdminTab('ResetPapers');
+            document.getElementById('adminTabSettings').onclick = () => switchAdminTab('Settings');
+            
+            document.getElementById('createAccountBtn').onclick = createStudentAccount;
+            document.getElementById('exportAccountsBtn').onclick = exportAccountsToCSV;
+            document.getElementById('assignPackageBtn').onclick = assignPackage;
+            document.getElementById('createCustomPackageBtn').onclick = createCustomPackageHandler;
+            document.getElementById('assignCustomPackageBtn').onclick = assignCustomPackageHandler;
+            document.getElementById('resetPackageSelect').onchange = updatePaperDropdowns;
+            document.getElementById('resetPaperBtn').onclick = resetPaperAdmin;
+            document.getElementById('resetPackageBtnAdmin').onclick = resetPackageAdmin;
+            
+            document.getElementById('bulkPackageSelect').onchange = updatePaperDropdowns;
+            document.getElementById('editPackageSelect').onchange = updatePaperDropdowns;
+            document.getElementById('loadQuestionsBtn').onclick = loadQuestionsToEditor;
+            document.getElementById('addNewQuestionBtn').onclick = addNewQuestion;
+            document.getElementById('saveEditBtn').onclick = saveEditedQuestion;
+            document.getElementById('closeEditModal').onclick = () => document.getElementById('editQuestionModal').classList.add('hidden');
+            document.getElementById('cancelEditBtn').onclick = () => document.getElementById('editQuestionModal').classList.add('hidden');
+            document.getElementById('uploadZone').onclick = () => document.getElementById('bulkFileInput').click();
+            document.getElementById('bulkFileInput').onchange = (e) => { let file = e.target.files[0]; if (!file) return; document.getElementById('uploadPreview').innerHTML = `<p class="text-green-600">📄 File: ${file.name}</p>`; document.getElementById('uploadPreview').classList.remove('hidden'); document.getElementById('confirmUploadBtn').classList.remove('hidden'); window.pendingFile = file; };
+            document.getElementById('confirmUploadBtn').onclick = () => { if (window.pendingFile) { parseExcelAndUpload(window.pendingFile, document.getElementById('bulkGradeSelect').value, document.getElementById('bulkPackageSelect').value, document.getElementById('bulkPaperSelect').value); document.getElementById('uploadPreview').classList.add('hidden'); document.getElementById('confirmUploadBtn').classList.add('hidden'); window.pendingFile = null; document.getElementById('bulkFileInput').value = ''; } };
+            
+            // Free Package Upload Listeners
+            document.getElementById('freeUploadZone').onclick = () => document.getElementById('freeBulkFileInput').click();
+            document.getElementById('freeBulkFileInput').onchange = (e) => { let file = e.target.files[0]; if (!file) return; document.getElementById('freeUploadPreview').innerHTML = `<p class="text-green-600">📄 File: ${file.name}</p>`; document.getElementById('freeUploadPreview').classList.remove('hidden'); document.getElementById('freeConfirmUploadBtn').classList.remove('hidden'); window.freePendingFile = file; };
+            document.getElementById('freeConfirmUploadBtn').onclick = () => { if (window.freePendingFile) { parseExcelAndUpload(window.freePendingFile, document.getElementById('freeEditGradeSelect').value, 6, document.getElementById('freeBulkPaperSelect').value, true); document.getElementById('freeUploadPreview').classList.add('hidden'); document.getElementById('freeConfirmUploadBtn').classList.add('hidden'); window.freePendingFile = null; document.getElementById('freeBulkFileInput').value = ''; } };
+            document.getElementById('freeEditGradeSelect').onchange = () => { updateFreePaperDropdown(); loadFreeQuestionsToEditor(); };
+            document.getElementById('freeEditPaperSelect').onchange = () => loadFreeQuestionsToEditor();
+            document.getElementById('loadFreeQuestionsBtn').onclick = loadFreeQuestionsToEditor;
+            
+            document.getElementById('insightGradeSelect').onchange = () => updateInsightPackageOptions();
+            document.getElementById('insightPackageSelect').onchange = () => updateInsightPaperDropdown();
+            document.getElementById('loadInsightsBtn').onclick = () => loadPaperInsights();
+            document.getElementById('exportInsightsBtn').onclick = () => exportInsightsToCSV();
+            document.getElementById('exportTopPerformersBtn').onclick = () => exportTopPerformersOnly();
+        });
+    </script>
+</body>
+</html>
